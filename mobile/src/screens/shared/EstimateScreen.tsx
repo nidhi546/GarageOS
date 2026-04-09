@@ -561,33 +561,32 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
               <Text style={s.saveBtnText}>{saving ? 'Saving...' : 'Save Draft'}</Text>
             </TouchableOpacity>
 
-            {/* Approve — owner/manager only */}
+            {/* Approve + Reject row — owner/manager only */}
             {canApproveEstimate() && estimate && (
-              <TouchableOpacity
-                style={[s.footerBtn, s.approveBtn]}
-                onPress={handleApprove}
-                disabled={approving || saving}
-                activeOpacity={0.85}
-              >
-                {approving
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                }
-                <Text style={s.approveBtnText}>{approving ? 'Approving...' : 'Approve'}</Text>
-              </TouchableOpacity>
-            )}
+              <View style={s.approveRejectRow}>
+                <TouchableOpacity
+                  style={[s.footerBtn, s.approveBtn, { flex: 1 }]}
+                  onPress={handleApprove}
+                  disabled={approving || saving}
+                  activeOpacity={0.85}
+                >
+                  {approving
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                  }
+                  <Text style={s.approveBtnText}>{approving ? 'Approving...' : 'Approve'}</Text>
+                </TouchableOpacity>
 
-            {/* Reject — owner/manager only */}
-            {canApproveEstimate() && estimate && (
-              <TouchableOpacity
-                style={[s.footerBtn, s.rejectBtn]}
-                onPress={handleReject}
-                disabled={rejecting || saving || approving}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="close-circle-outline" size={18} color={COLORS.danger} />
-                <Text style={s.rejectBtnText}>Reject</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.footerBtn, s.rejectBtn, { flex: 1 }]}
+                  onPress={handleReject}
+                  disabled={rejecting || saving || approving}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="close-circle-outline" size={18} color={COLORS.danger} />
+                  <Text style={s.rejectBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </>
         )}
@@ -720,7 +719,8 @@ const s = StyleSheet.create({
   signatureBox:   { width: 120, height: 60, borderWidth: 1, borderColor: '#ccc', borderRadius: RADIUS.sm, marginBottom: SPACING.xs },
   signatureLabel: { fontSize: FONT.sizes.xs, color: '#555' },
   footer:         { gap: SPACING.sm, padding: SPACING.md, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: COLORS.border },
-  footerBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, paddingVertical: SPACING.sm, borderRadius: RADIUS.lg },
+  footerBtn:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, paddingVertical: SPACING.sm, borderRadius: RADIUS.lg },
+  approveRejectRow: { flexDirection: 'row', gap: SPACING.sm },
   saveBtn:        { borderWidth: 1.5, borderColor: COLORS.primary },
   saveBtnText:    { fontSize: FONT.sizes.sm, fontWeight: '700', color: COLORS.primary },
   approveBtn:     { backgroundColor: COLORS.success },

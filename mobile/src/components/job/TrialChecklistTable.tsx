@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, TextInput, Alert,
+  TouchableOpacity, TextInput, Alert, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 import type { InspectionRating, Inspection, CreateInspectionPayload } from '../../types';
@@ -132,9 +133,11 @@ export const TrialChecklistTable: React.FC<TrialChecklistTableProps> = ({
 
   const doneCount = Object.values(done).filter(Boolean).length;
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={s.wrapper}>
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <View style={[s.wrapper, { paddingTop: insets.top > 0 ? 0 : 0 }]}>
+      <ScrollView contentContainerStyle={[s.content, { paddingBottom: 100 + insets.bottom }]} showsVerticalScrollIndicator={false}>
 
         {/* ── Legend ── */}
         <View style={s.legendRow}>
@@ -182,7 +185,7 @@ export const TrialChecklistTable: React.FC<TrialChecklistTableProps> = ({
                   {preRating ? <RatingPill rating={preRating} /> : <Text style={s.tdEmpty}>—</Text>}
                 </View>
               ) : (
-                <View style={isPostForm ? s.tdPost : s.tdPre}>
+                <View style={s.tdPost}>
                   {(['good', 'average', 'poor'] as InspectionRating[]).map(r => {
                     const sel = postRatings[comp.key] === r;
                     const c   = RATING_COLOR[r];
@@ -258,7 +261,7 @@ export const TrialChecklistTable: React.FC<TrialChecklistTableProps> = ({
 
       {/* ── Submit footer ── */}
       {(isPreForm || isPostForm) && (
-        <View style={s.footer}>
+        <View style={[s.footer, { paddingBottom: insets.bottom + SPACING.md }]}>
           {isPostForm && (
             <View style={s.progressBar}>
               <View style={[s.progressFill, { width: `${(doneCount / COMPONENTS.length) * 100}%` as any }]} />
@@ -297,8 +300,8 @@ const s = StyleSheet.create({
   thCell:           { fontSize: FONT.sizes.xs, fontWeight: '700', color: '#fff' },
   thComponent:      { flex: 2 },
   thPre:            { flex: 1.2, textAlign: 'center' },
-  thPost:           { flex: 2.5, textAlign: 'center' },
-  thDone:           { width: 48, textAlign: 'center' },
+  thPost:           { flex: 3, textAlign: 'center' },
+  thDone:           { width: 44, textAlign: 'center' },
 
   tableRow:         { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.sm, marginBottom: 2 },
   tableRowAlt:      { backgroundColor: COLORS.surface },
@@ -307,11 +310,11 @@ const s = StyleSheet.create({
   tdComponent:      { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 6 },
   tdLabel:          { fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.text },
   tdPre:            { flex: 1.2, alignItems: 'center' },
-  tdPost:           { flex: 2.5, flexDirection: 'row', gap: 3, alignItems: 'center' },
-  tdDone:           { width: 48, alignItems: 'center' },
+  tdPost:           { flex: 3, flexDirection: 'row', gap: 4, alignItems: 'center' },
+  tdDone:           { width: 44, alignItems: 'center' },
   tdEmpty:          { fontSize: FONT.sizes.sm, color: COLORS.textMuted, textAlign: 'center' },
 
-  miniChip:         { flex: 1, paddingVertical: 4, borderRadius: RADIUS.xs, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
+  miniChip:         { flex: 1, paddingVertical: 5, borderRadius: RADIUS.xs, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
   miniChipText:     { fontSize: 10, fontWeight: '700', color: COLORS.textMuted },
 
   tickBox:          { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
