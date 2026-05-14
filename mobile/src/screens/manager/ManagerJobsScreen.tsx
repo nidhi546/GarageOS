@@ -110,12 +110,7 @@ export const ManagerJobsScreen: React.FC<{ navigation: any }> = ({ navigation })
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-<<<<<<< HEAD
-        style={styles.filtersScroll}
-        contentContainerStyle={styles.filters}
-=======
         contentContainerStyle={s.chips}
->>>>>>> b4f26d8f (changes)
       >
         {FILTERS.map(f => (
           <TouchableOpacity
@@ -237,17 +232,9 @@ const JobCard: React.FC<{ job: HanaJobCard; onPress: () => void }> = ({ job: j, 
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-<<<<<<< HEAD
-  topBar: { padding: SPACING.md, paddingBottom: 0 },
-  filtersScroll: { flexGrow: 0 },
-  filters: {
-    flexDirection: "row",
-    alignItems: "center",
-=======
   topBar:    { padding: SPACING.md, paddingBottom: 0 },
   chips:     { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, gap: SPACING.xs },
   chip:      {
->>>>>>> b4f26d8f (changes)
     paddingHorizontal: SPACING.md,
     height:            32,
     justifyContent:    'center',
@@ -256,22 +243,12 @@ const s = StyleSheet.create({
     borderWidth:       1.5,
     borderColor:       COLORS.border,
   },
-<<<<<<< HEAD
-  filterChip: {
-    // paddingHorizontal: SPACING.md,
-    // paddingVertical: 7,
-    height: 32,
-    width: 90,
-    justifyContent: "center",
-    borderRadius: RADIUS.full,
-=======
   chipActive:     { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   chipText:       { fontSize: FONT.sizes.xs, fontWeight: '600', color: COLORS.textSecondary },
   chipTextActive: { color: '#fff' },
   list: { padding: SPACING.md, paddingBottom: 100 },
 
   card: {
->>>>>>> b4f26d8f (changes)
     backgroundColor: COLORS.surface,
     borderRadius:    RADIUS.lg,
     padding:         SPACING.md,
@@ -288,13 +265,6 @@ const s = StyleSheet.create({
     alignItems:     'flex-start',
     marginBottom:   6,
   },
-<<<<<<< HEAD
-  filterText: {
-    fontSize: FONT.sizes.xs,
-    fontWeight: "600",
-    color: COLORS.textSecondary,
-    textAlign: "center",
-=======
   cardLeft:    { flex: 1, marginRight: SPACING.sm },
   vehicleName: { fontSize: FONT.sizes.md, fontWeight: '700', color: COLORS.text },
   plateText:   { fontSize: FONT.sizes.xs, color: COLORS.textMuted, marginTop: 2 },
@@ -303,7 +273,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical:   3,
     borderRadius:      RADIUS.sm,
->>>>>>> b4f26d8f (changes)
   },
   idChipText: { fontSize: FONT.sizes.xs, fontWeight: '700', color: COLORS.primary },
 

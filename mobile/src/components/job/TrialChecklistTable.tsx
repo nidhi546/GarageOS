@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, TextInput, Alert, Platform,
+  TouchableOpacity, TextInput, Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 import type { InspectionRating, Inspection, CreateInspectionPayload } from '../../types';
@@ -133,70 +132,63 @@ export const TrialChecklistTable: React.FC<TrialChecklistTableProps> = ({
 
   const doneCount = Object.values(done).filter(Boolean).length;
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <View style={[s.wrapper, { paddingTop: insets.top > 0 ? 0 : 0 }]}>
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: 100 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+    <View style={s.wrapper}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
 
         {/* ── Legend ── */}
-        <View style={s.legendRow}>
-          <View style={[s.legendDot, { backgroundColor: isPostForm ? COLORS.primaryLight : COLORS.successLight }]} />
+        {!isPostForm && (
           <Text style={s.legendText}>
-            {isPreForm ? 'Pre-Trial Checklist' : isPreView ? 'Pre-Trial (Read-only)' : 'Pre vs Post Trial'}
+            {isPreForm ? 'Pre-Trial Checklist' : 'Pre-Trial (Read-only)'}
           </Text>
-        </View>
+        )}
 
         {/* ── Table header ── */}
         <View style={s.tableHeader}>
           <Text style={[s.thCell, s.thComponent]}>Component</Text>
           {isPostForm && <Text style={[s.thCell, s.thPre]}>Pre</Text>}
-          <Text style={[s.thCell, isPostForm ? s.thPost : s.thPre]}>Rating</Text>
+          <Text style={[s.thCell, s.thPost]}>Rating</Text>
           {isPostForm && <Text style={[s.thCell, s.thDone]}>Done</Text>}
         </View>
 
         {/* ── Table rows ── */}
-        {COMPONENTS.map((comp, idx) => {
-          const preRating  = preInspection?.[comp.key] as InspectionRating | undefined;
-          const isDone     = done[comp.key];
-          const isEven     = idx % 2 === 0;
+        {COMPONENTS.map((comp) => {
+          const preRating = preInspection?.[comp.key] as InspectionRating | undefined;
+          const isDone    = done[comp.key];
 
           return (
-            <View
-              key={comp.key}
-              style={[s.tableRow, isEven && s.tableRowAlt, isDone && mode === 'post-form' && s.tableRowDone]}
-            >
+            <View key={comp.key} style={[s.tableRow, isDone && mode === 'post-form' && s.tableRowDone]}>
               {/* Component name */}
-              <View style={[s.tdComponent]}>
-                <Ionicons name={comp.icon} size={14} color={COLORS.textSecondary} />
+              <View style={s.tdComponent}>
+                <Ionicons name={comp.icon} size={16} color={COLORS.textSecondary} />
                 <Text style={s.tdLabel}>{comp.label}</Text>
               </View>
 
               {/* Pre rating column — only in post-form */}
               {isPostForm && (
-                <View style={s.tdPre}>
+                <View style={s.tdPreCol}>
                   {preRating ? <RatingPill rating={preRating} /> : <Text style={s.tdEmpty}>—</Text>}
                 </View>
               )}
 
-              {/* Rating column — read-only pill for pre-view, editable chips for pre-form/post-form */}
+              {/* Rating column */}
               {isPreView ? (
-                <View style={s.tdPre}>
+                <View style={s.tdPreCol}>
                   {preRating ? <RatingPill rating={preRating} /> : <Text style={s.tdEmpty}>—</Text>}
                 </View>
               ) : (
-                <View style={s.tdPost}>
+                <View style={s.tdPostChips}>
                   {(['good', 'average', 'poor'] as InspectionRating[]).map(r => {
                     const sel = postRatings[comp.key] === r;
                     const c   = RATING_COLOR[r];
                     return (
                       <TouchableOpacity
                         key={r}
-                        style={[s.miniChip, sel && { backgroundColor: c.bg, borderColor: c.color }]}
+                        style={[s.ratingChip, sel && { backgroundColor: c.bg, borderColor: c.color }]}
                         onPress={() => setPostRating(comp.key, r)}
                         activeOpacity={0.7}
                       >
-                        <Text style={[s.miniChipText, sel && { color: c.color }]}>{c.label}</Text>
+                        <Text style={[s.ratingChipText, sel && { color: c.color }]}>{c.label}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -261,7 +253,7 @@ export const TrialChecklistTable: React.FC<TrialChecklistTableProps> = ({
 
       {/* ── Submit footer ── */}
       {(isPreForm || isPostForm) && (
-        <View style={[s.footer, { paddingBottom: insets.bottom + SPACING.md }]}>
+        <View style={s.footer}>
           {isPostForm && (
             <View style={s.progressBar}>
               <View style={[s.progressFill, { width: `${(doneCount / COMPONENTS.length) * 100}%` as any }]} />
@@ -290,32 +282,28 @@ const s = StyleSheet.create({
   wrapper:          { flex: 1, backgroundColor: COLORS.background },
   content:          { padding: SPACING.md, paddingBottom: 120 },
 
-  legendRow:        { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md, flexWrap: 'wrap' },
-  legendItem:       { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  legendDot:        { width: 10, height: 10, borderRadius: 5 },
-  legendText:       { fontSize: FONT.sizes.xs, color: COLORS.textSecondary, fontWeight: '600' },
+  legendText:       { fontSize: FONT.sizes.xs, color: COLORS.textSecondary, fontWeight: '600', marginBottom: SPACING.sm },
 
   // Table
-  tableHeader:      { flexDirection: 'row', backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, marginBottom: 2 },
+  tableHeader:      { flexDirection: 'row', backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, marginBottom: 4 },
   thCell:           { fontSize: FONT.sizes.xs, fontWeight: '700', color: '#fff' },
   thComponent:      { flex: 2 },
   thPre:            { flex: 1.2, textAlign: 'center' },
-  thPost:           { flex: 3, textAlign: 'center' },
-  thDone:           { width: 44, textAlign: 'center' },
+  thPost:           { flex: 2.5, textAlign: 'center' },
+  thDone:           { width: 48, textAlign: 'center' },
 
-  tableRow:         { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.sm, marginBottom: 2 },
-  tableRowAlt:      { backgroundColor: COLORS.surface },
+  tableRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: RADIUS.md, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, marginBottom: SPACING.xs, ...SHADOW.sm },
   tableRowDone:     { backgroundColor: '#F0FDF4' },
 
-  tdComponent:      { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tdComponent:      { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 8 },
   tdLabel:          { fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.text },
-  tdPre:            { flex: 1.2, alignItems: 'center' },
-  tdPost:           { flex: 3, flexDirection: 'row', gap: 4, alignItems: 'center' },
-  tdDone:           { width: 44, alignItems: 'center' },
+  tdPreCol:         { flex: 1.2, alignItems: 'center' },
+  tdPostChips:      { flex: 2.5, flexDirection: 'row', gap: 6, alignItems: 'center' },
+  tdDone:           { width: 48, alignItems: 'center' },
   tdEmpty:          { fontSize: FONT.sizes.sm, color: COLORS.textMuted, textAlign: 'center' },
 
-  miniChip:         { flex: 1, paddingVertical: 5, borderRadius: RADIUS.xs, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
-  miniChipText:     { fontSize: 10, fontWeight: '700', color: COLORS.textMuted },
+  ratingChip:       { flex: 1, paddingVertical: 7, borderRadius: RADIUS.sm, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
+  ratingChipText:   { fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.textMuted },
 
   tickBox:          { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
   tickBoxDone:      { backgroundColor: COLORS.success, borderColor: COLORS.success },

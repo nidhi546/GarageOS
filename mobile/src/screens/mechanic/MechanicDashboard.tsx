@@ -1,14 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-<<<<<<< HEAD
-  View, Text, ScrollView, StyleSheet,
-  RefreshControl, TouchableOpacity,
-  SafeAreaView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons'
-import { useAuthStore } from '../../stores/authStore';
-import { useJobCardStore } from '../../stores/jobCardStore';
-=======
   View, Text, ScrollView, StyleSheet, RefreshControl,
   TouchableOpacity, SafeAreaView, ActivityIndicator,
   StatusBar, Dimensions,
@@ -17,18 +8,12 @@ import { AppLoaderModal } from '../../components/common/AppLoaderModal';
 import { Ionicons }       from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore }   from '../../stores/authStore';
->>>>>>> b4f26d8f (changes)
 import { useNotificationStore } from '../../stores/notificationStore';
-import { useDrawer } from '../../components/CustomDrawer';
-import { StatCard } from '../../components/common/StatCard';
-import { JobCardListItem } from '../../components/job/JobCardListItem';
-import { EmptyState } from '../../components/common/EmptyState';
+import { useDrawer }      from '../../components/CustomDrawer';
+import { jobcardApi, HanaJobCard } from '../../api/jobcardApi';
+import { EmptyState }     from '../../components/common/EmptyState';
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 
-<<<<<<< HEAD
-const COMPLETED_STATUSES = new Set(['work_completed', 'qc_passed', 'invoiced', 'paid', 'delivered']);
-const ACTIVE_STATUSES    = new Set(['assigned', 'in_progress', 'waiting_parts', 'qc_failed']);
-=======
 const { width: SW } = Dimensions.get('window');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -271,21 +256,16 @@ const sh = StyleSheet.create({
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
->>>>>>> b4f26d8f (changes)
 
 export const MechanicDashboard: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { user } = useAuthStore();
-  const { jobCards, fetchByMechanic, isLoading } = useJobCardStore();
-  const { unreadCount } = useNotificationStore();
+  const { user }         = useAuthStore();
+  const { unreadCount }  = useNotificationStore();
   const { toggleDrawer } = useDrawer();
 
-  const mechanicId = user?.id ?? 'u3';
+  const [jobs,       setJobs]       = useState<HanaJobCard[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-<<<<<<< HEAD
-  useEffect(() => { fetchByMechanic(mechanicId); }, [mechanicId]);
-
-  // ─── Derived (memoized) ────────────────────────────────────────────────────
-=======
   const load = useCallback(async () => {
     try {
       const data = await jobcardApi.getByMechanic(user?.id ?? '');
@@ -293,46 +273,10 @@ export const MechanicDashboard: React.FC<{ navigation: any }> = ({ navigation })
     } catch { /* silent */ }
     finally { setLoading(false); setRefreshing(false); }
   }, [user?.id]);
->>>>>>> b4f26d8f (changes)
 
-  const inProgress = useMemo(() => jobCards.filter(j => j.status === 'in_progress'), [jobCards]);
-  const waiting    = useMemo(() => jobCards.filter(j => j.status === 'waiting_parts'), [jobCards]);
-  const completed  = useMemo(() => jobCards.filter(j => COMPLETED_STATUSES.has(j.status as string)), [jobCards]);
-  const activeJobs = useMemo(() => jobCards.filter(j => ACTIVE_STATUSES.has(j.status as string)), [jobCards]);
+  useFocusEffect(useCallback(() => { setLoading(true); load(); }, [load]));
+  const onRefresh = useCallback(() => { setRefreshing(true); load(); }, [load]);
 
-<<<<<<< HEAD
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} >
-    <ScrollView
-      style={s.container}
-      contentContainerStyle={s.content}
-      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => fetchByMechanic(mechanicId)} />}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* ── Header ── */}
-      <View style={s.header}>
-        <TouchableOpacity style={s.menuBtn} onPress={toggleDrawer} activeOpacity={0.8}>
-          <Ionicons name="menu-outline" size={26} color={COLORS.text} />
-        </TouchableOpacity>
-        <View style={s.headerLeft}>
-          <Text style={s.greeting}>{greeting} 👋</Text>
-          <Text style={s.name}>{user?.name ?? 'Mechanic'}</Text>
-          <Text style={s.sub}>My Workspace</Text>
-        </View>
-        <TouchableOpacity
-          style={s.notifBtn}
-          onPress={() => navigation.navigate('Notifications')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="notifications-outline" size={22} color={COLORS.text} />
-          {unreadCount > 0 && (
-            <View style={s.notifBadge}>
-              <Text style={s.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-            </View>
-=======
   const counts = {
     assigned:  jobs.filter(j => j.status === 'assigned' || j.status === 'open').length,
     progress:  jobs.filter(j => j.status === 'in_progress').length,
@@ -455,90 +399,9 @@ export const MechanicDashboard: React.FC<{ navigation: any }> = ({ navigation })
             activeJobs.map(job => (
               <JobCard key={job._id} job={job} navigation={navigation} onStatusChange={setJobs} />
             ))
->>>>>>> b4f26d8f (changes)
           )}
-        </TouchableOpacity>
-      </View>
+        </View>
 
-<<<<<<< HEAD
-      {/* ── KPI Cards ── */}
-      <View style={s.statsRow}>
-        <StatCard
-          label="In Progress"
-          value={String(inProgress.length)}
-          icon="play-circle-outline"
-          iconColor={COLORS.info}
-          iconBg={COLORS.infoLight}
-          style={s.stat}
-        />
-        <StatCard
-          label="Waiting Parts"
-          value={String(waiting.length)}
-          icon="cube-outline"
-          iconColor={COLORS.warning}
-          iconBg={COLORS.warningLight}
-          style={s.stat}
-        />
-      </View>
-      <View style={s.statsRow}>
-        <StatCard
-          label="Completed"
-          value={String(completed.length)}
-          icon="checkmark-circle-outline"
-          iconColor={COLORS.success}
-          iconBg={COLORS.successLight}
-          style={s.stat}
-        />
-        <StatCard
-          label="Total Assigned"
-          value={String(jobCards.length)}
-          icon="construct-outline"
-          iconColor={COLORS.primary}
-          iconBg={COLORS.primaryLight}
-          style={s.stat}
-        />
-      </View>
-
-      {/* ── Active Jobs ── */}
-      <View style={s.sectionHeader}>
-        <Text style={s.sectionTitle}>My Active Jobs</Text>
-        {activeJobs.length > 0 && (
-          <View style={s.countPill}>
-            <Text style={s.countPillText}>{activeJobs.length}</Text>
-          </View>
-        )}
-      </View>
-
-      {activeJobs.length === 0 ? (
-        <EmptyState
-          title="No active jobs"
-          message="You have no jobs assigned right now. Check back soon."
-          icon="construct-outline"
-        />
-      ) : (
-        activeJobs.map(job => (
-          <JobCardListItem
-            key={job.id}
-            jobCard={job}
-            onPress={() => navigation.navigate('JobWork', { jobCardId: job.id })}
-          />
-        ))
-      )}
-
-      {/* ── Completed Jobs (collapsed summary) ── */}
-      {completed.length > 0 && (
-        <>
-          <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Completed</Text>
-          </View>
-          <TouchableOpacity
-            style={s.completedSummary}
-            onPress={() => navigation.navigate('Jobs')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
-            <Text style={s.completedText}>{completed.length} job{completed.length > 1 ? 's' : ''} completed</Text>
-=======
         {/* ══ COMPLETED ROW ══ */}
         {counts.completed > 0 && (
           <TouchableOpacity
@@ -553,38 +416,15 @@ export const MechanicDashboard: React.FC<{ navigation: any }> = ({ navigation })
               <Text style={s.completedTitle}>Completed Jobs</Text>
               <Text style={s.completedSub}>{counts.completed} job{counts.completed > 1 ? 's' : ''} finished</Text>
             </View>
->>>>>>> b4f26d8f (changes)
             <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
-        </>
-      )}
-    </ScrollView>
+        )}
+
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-<<<<<<< HEAD
-const s = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: COLORS.background },
-  content:         { padding: SPACING.md, paddingBottom: 100 },
-  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING.lg },
-  headerLeft:      { flex: 1 ,marginStart:20},
-  greeting:        { fontSize: FONT.sizes.sm, color: COLORS.textSecondary },
-  name:            { fontSize: FONT.sizes.xl, fontWeight: '700', color: COLORS.text, marginTop: 2 },
-  sub:             { fontSize: FONT.sizes.xs, color: COLORS.textMuted, marginTop: 2 },
-  menuBtn:        { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', ...SHADOW.sm },
-  notifBtn:        { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', ...SHADOW.sm },
-  notifBadge:      { position: 'absolute', top: 6, right: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  notifBadgeText:  { fontSize: 9, color: '#fff', fontWeight: '800' },
-  statsRow:        { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
-  stat:            { flex: 1 },
-  sectionHeader:   { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginTop: SPACING.lg, marginBottom: SPACING.sm },
-  sectionTitle:    { fontSize: FONT.sizes.md, fontWeight: '700', color: COLORS.text },
-  countPill:       { backgroundColor: COLORS.primaryLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
-  countPillText:   { fontSize: FONT.sizes.xs, color: COLORS.primary, fontWeight: '700' },
-  completedSummary:{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, ...SHADOW.sm },
-  completedText:   { flex: 1, fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.success },
-=======
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
@@ -634,5 +474,4 @@ const s = StyleSheet.create({
   completedBody: { flex: 1 },
   completedTitle:{ fontSize: 13, fontWeight: '700', color: COLORS.text },
   completedSub:  { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
->>>>>>> b4f26d8f (changes)
 });

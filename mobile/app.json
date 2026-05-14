@@ -6,12 +6,15 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "garageos",
+
     "icon": "./assets/icon.png",
+
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hanagarageos.app",
@@ -23,6 +26,7 @@
         "tabletImage": "./assets/splash.png"
       }
     },
+
     "android": {
       "package": "com.hanagarageos.app",
       "adaptiveIcon": {
@@ -35,19 +39,21 @@
         "backgroundColor": "#FFFFFF"
       }
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
       "expo-notifications",
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow GarageOS to access your photos."
+          "photosPermission": "GarageOS needs access to your photo library to upload vehicle and job card photos.",
+          "cameraPermission": "GarageOS needs camera access to capture vehicle and job card photos."
         }
       ],
-      "expo-font",
-      "expo-asset"
+      "expo-font"
     ]
   }
 }

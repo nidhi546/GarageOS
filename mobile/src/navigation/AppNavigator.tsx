@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TouchableOpacity, StyleSheet } from "react-native";
 import {
   NavigationContainer,
@@ -7,12 +7,14 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../stores/authStore";
+import { StorageService } from "../services/storage";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import {
   DrawerProvider,
   useDrawer,
   setDrawerNavRef,
 } from "../components/CustomDrawer";
+import { isDevToken } from "./roleRouter";
 import { COLORS, FONT } from "../config/theme";
 import { UserRole } from "../types";
 
@@ -25,12 +27,12 @@ import { RoleGuideScreen } from "../screens/auth/RoleGuideScreen";
 import { OwnerDashboard } from "../screens/owner/OwnerDashboard";
 import { ApprovalsScreen } from "../screens/owner/ApprovalsScreen";
 import { RevenueScreen } from "../screens/owner/RevenueScreen";
+import { ManageServicesScreen } from "../screens/owner/ManageServicesScreen";
 
 // ─── Manager ──────────────────────────────────────────────────────────────────
 import { ManagerDashboard } from "../screens/manager/ManagerDashboard";
 import { ManagerJobsScreen } from "../screens/manager/ManagerJobsScreen";
 import { AssignMechanicScreen } from "../screens/manager/AssignMechanicScreen";
-import { MechanicListScreen } from "../screens/manager/MechanicListScreen";
 import { AddMechanicScreen } from "../screens/manager/AddMechanicScreen";
 
 // ─── Mechanic ─────────────────────────────────────────────────────────────────
@@ -50,6 +52,7 @@ import { CustomerDetailScreen } from "../screens/shared/CustomerDetailScreen";
 import { CustomerFormScreen } from "../screens/shared/CustomerFormScreen";
 import { AddCustomerScreen } from "../screens/shared/AddCustomerScreen";
 import { AddVehicleScreen } from "../screens/shared/AddVehicleScreen";
+import { VehiclesListScreen } from "../screens/shared/VehiclesListScreen";
 import { InvoiceScreen } from "../screens/shared/InvoiceScreen";
 import { EstimateScreen } from "../screens/shared/EstimateScreen";
 import { InspectionScreen } from "../screens/shared/InspectionScreen";
@@ -59,8 +62,6 @@ import { ProfileScreen }        from "../screens/shared/ProfileScreen";
 import { EditProfileScreen }    from "../screens/shared/EditProfileScreen";
 import { ChangePasswordScreen } from "../screens/shared/ChangePasswordScreen";
 import { NotificationsScreen } from "../screens/shared/NotificationsScreen";
-<<<<<<< HEAD
-=======
 import { HanaJobCardListScreen } from "../screens/shared/HanaJobCardListScreen";
 import { HanaJobCardDetailScreen } from "../screens/shared/HanaJobCardDetailScreen";
 import { HanaAssignMechanicScreen } from "../screens/manager/HanaAssignMechanicScreen";
@@ -69,25 +70,25 @@ import { HanaAddMechanicScreen } from "../screens/manager/HanaAddMechanicScreen"
 import { HanaManageMechanicsScreen } from "../screens/manager/HanaManageMechanicsScreen";
 import { ReviseEstimateScreen } from "../screens/shared/ReviseEstimateScreen";
 import { PrivacyPolicyScreen } from "../screens/shared/PrivacyPolicyScreen";
->>>>>>> b4f26d8f (changes)
 
 // ─── Navigator ────────────────────────────────────────────────────────────────
 const Stack = createNativeStackNavigator();
 
-// ─── Role mappings ────────────────────────────────────────────────────────────
+// ─── Role → component maps (driven by roleRouter screen names) ────────────────
+// Update roleRouter.ts when adding new roles — this map stays in sync.
 const ROLE_DASHBOARD: Record<UserRole, React.ComponentType<any>> = {
-  OWNER: OwnerDashboard,
-  SUPER_ADMIN: OwnerDashboard,
-  MANAGER: ManagerDashboard,
-  MECHANIC: MechanicDashboard,
+  OWNER:        OwnerDashboard,
+  SUPER_ADMIN:  OwnerDashboard,
+  MANAGER:      ManagerDashboard,
+  MECHANIC:     MechanicDashboard,
   RECEPTIONIST: ReceptionistDashboard,
 };
 
 const ROLE_JOBS: Record<UserRole, React.ComponentType<any>> = {
-  OWNER: ManagerJobsScreen,
-  SUPER_ADMIN: ManagerJobsScreen,
-  MANAGER: ManagerJobsScreen,
-  MECHANIC: MechanicJobsScreen,
+  OWNER:        ManagerJobsScreen,
+  SUPER_ADMIN:  ManagerJobsScreen,
+  MANAGER:      ManagerJobsScreen,
+  MECHANIC:     MechanicJobsScreen,
   RECEPTIONIST: ManagerJobsScreen,
 };
 
@@ -186,8 +187,13 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           options={{ ...withDrawer, title: "Customers" }}
         />
         <Stack.Screen
+          name="Vehicles"
+          component={VehiclesListScreen}
+          options={{ ...withDrawer, title: "Vehicles" }}
+        />
+        <Stack.Screen
           name="Mechanics"
-          component={MechanicListScreen}
+          component={HanaManageMechanicsScreen}
           options={{ ...withDrawer, title: "Mechanics" }}
         />
         <Stack.Screen
@@ -199,6 +205,11 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           name="Revenue"
           component={RevenueScreen}
           options={{ ...withDrawer, title: "Revenue" }}
+        />
+        <Stack.Screen
+          name="ManageServices"
+          component={ManageServicesScreen}
+          options={{ ...withDrawer, title: "Service Pricing" }}
         />
         <Stack.Screen
           name="Approvals"
@@ -302,8 +313,6 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           component={NewServiceScreen}
           options={{ title: "New Job Card" }}
         />
-<<<<<<< HEAD
-=======
         <Stack.Screen
           name="HanaJobCards"
           component={HanaJobCardListScreen}
@@ -346,7 +355,6 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           component={PrivacyPolicyScreen}
           options={{ headerShown: false }}
         />
->>>>>>> b4f26d8f (changes)
       </Stack.Navigator>
     </DrawerProvider>
   );
@@ -354,8 +362,17 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated, isHydrated, user } = useAuthStore();
+  const { isAuthenticated, isHydrated, user, token, logout } = useAuthStore();
   const navRef = useRef<NavigationContainerRef<any>>(null);
+
+  // Flush any stale dummy/dev session that was persisted before the real API
+  // was wired up. Runs once after Zustand rehydrates from AsyncStorage.
+  useEffect(() => {
+    if (isHydrated && isAuthenticated && isDevToken(token)) {
+      StorageService.clearAuth();
+      logout();
+    }
+  }, [isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isHydrated) {
     return <LoadingSpinner />;

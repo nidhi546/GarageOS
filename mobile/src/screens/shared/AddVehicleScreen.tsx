@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { FuelType } from '../../types';
-=======
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
@@ -21,24 +14,14 @@ import { vehicleMasterApi }       from '../../api/vehicleMasterApi';
 import { VEHICLE_BRANDS, POPULAR_BRANDS, getModelsForBrand } from '../../constants/vehicleMaster';
 import { useMultiImageUpload }    from '../../hooks/useImageUpload';
 import { showToast }         from '../../utils/toast';
->>>>>>> b4f26d8f (changes)
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 
-const FUEL_TYPES: FuelType[] = ['petrol', 'diesel', 'cng', 'electric', 'hybrid'];
+const FUEL_TYPES = ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'] as const;
+type FuelType = (typeof FUEL_TYPES)[number];
 
 export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
-  const { customerId } = route.params ?? {};
-  const [regNumber, setRegNumber] = useState('');
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [color, setColor] = useState('');
-  const [fuelType, setFuelType] = useState<FuelType>('petrol');
-  const [currentKms, setCurrentKms] = useState('');
-  const [saving, setSaving] = useState(false);
+  const { customerId, registrationHint } = route.params ?? {};
 
-<<<<<<< HEAD
-=======
   const [regNumber,  setRegNumber]  = useState(registrationHint ?? '');
   const [brand,      setBrand]      = useState('');
   const [model,      setModel]      = useState('');
@@ -102,20 +85,13 @@ export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ ro
   }, [brand]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
->>>>>>> b4f26d8f (changes)
   const handleSave = async () => {
-    if (!regNumber || !brand || !model) {
-      Alert.alert('Required fields missing', 'Registration number, brand and model are required');
+    if (!regNumber.trim() || !brand.trim() || !model.trim()) {
+      showToast('Registration number, brand and model are required', 'error');
       return;
     }
+
     setSaving(true);
-<<<<<<< HEAD
-    await new Promise(r => setTimeout(r, 500));
-    setSaving(false);
-    Alert.alert('Vehicle Added', 'Vehicle has been registered.', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
-=======
     try {
       await vehicleApi.addVehicle({
         registrationNumber: regNumber.trim().toUpperCase(),
@@ -135,7 +111,6 @@ export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ ro
     } finally {
       setSaving(false);
     }
->>>>>>> b4f26d8f (changes)
   };
 
   return (
@@ -151,14 +126,6 @@ export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ ro
 
       <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.card}>
-<<<<<<< HEAD
-          <Input label="Registration Number *" value={regNumber} onChangeText={setRegNumber} placeholder="KA01AB1234" leftIcon="barcode-outline" autoCapitalize="characters" />
-          <Input label="Brand *" value={brand} onChangeText={setBrand} placeholder="e.g. Maruti, Hyundai" leftIcon="car-outline" />
-          <Input label="Model *" value={model} onChangeText={setModel} placeholder="e.g. Swift, Creta" leftIcon="car-sport-outline" />
-          <Input label="Year" value={year} onChangeText={setYear} placeholder="e.g. 2022" leftIcon="calendar-outline" keyboardType="numeric" maxLength={4} />
-          <Input label="Color" value={color} onChangeText={setColor} placeholder="e.g. White" leftIcon="color-palette-outline" />
-          <Input label="Current KMs" value={currentKms} onChangeText={setCurrentKms} placeholder="e.g. 45000" leftIcon="speedometer-outline" keyboardType="numeric" />
-=======
           <Input
             label="Registration Number *"
             value={regNumber}
@@ -215,7 +182,6 @@ export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ ro
             leftIcon="speedometer-outline"
             keyboardType="numeric"
           />
->>>>>>> b4f26d8f (changes)
 
           <Text style={s.fieldLabel}>Fuel Type</Text>
           <View style={s.fuelGrid}>
@@ -260,34 +226,26 @@ export const AddVehicleScreen: React.FC<{ route: any; navigation: any }> = ({ ro
           </View>
         </View>
       </ScrollView>
+
       <View style={s.footer}>
-        <Button title="Cancel" onPress={() => navigation.goBack()} variant="outline" style={s.footerBtn} />
-        <Button title="Add Vehicle" onPress={handleSave} loading={saving} style={s.footerBtn} />
+        <Button title="Cancel"      onPress={() => navigation.goBack()} variant="outline" style={s.footerBtn} />
+        <Button title="Add Vehicle" onPress={handleSave} loading={saving}              style={s.footerBtn} />
       </View>
     </View>
   );
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.md, paddingBottom: 100 },
-  card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, ...SHADOW.sm },
+  container:  { flex: 1, backgroundColor: COLORS.background },
+  content:    { padding: SPACING.md, paddingBottom: 100 },
+  card:       { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, ...SHADOW.sm },
   fieldLabel: { fontSize: FONT.sizes.sm, fontWeight: '500', color: COLORS.text, marginBottom: SPACING.xs },
-<<<<<<< HEAD
-  fuelGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, marginBottom: SPACING.sm },
-  fuelChip: { paddingHorizontal: SPACING.sm, paddingVertical: 7, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.border },
-=======
 
   fuelGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, marginBottom: SPACING.md },
   fuelChip:       { paddingHorizontal: SPACING.sm, paddingVertical: 7, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.border },
->>>>>>> b4f26d8f (changes)
   fuelChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  fuelText: { fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.textSecondary, textTransform: 'capitalize' },
+  fuelText:       { fontSize: FONT.sizes.sm, fontWeight: '600', color: COLORS.textSecondary },
   fuelTextActive: { color: '#fff' },
-<<<<<<< HEAD
-  footer: { flexDirection: 'row', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderTopWidth: 1, borderTopColor: COLORS.border },
-  footerBtn: { flex: 1 },
-=======
 
   // Photo upload
   photoRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.sm },
@@ -309,5 +267,4 @@ const s = StyleSheet.create({
 
   footer:     { flexDirection: 'row', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderTopWidth: 1, borderTopColor: COLORS.border },
   footerBtn:  { flex: 1 },
->>>>>>> b4f26d8f (changes)
 });
