@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
+<<<<<<< HEAD
   TouchableOpacity, TextInput, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +13,23 @@ import { Avatar } from '../../components/common/Avatar';
 import { dummyCustomers } from '../../dummy/customers';
 import { dummyVehicles } from '../../dummy/vehicles';
 import { Customer, Vehicle, ServiceTypeHint } from '../../types';
+=======
+  TouchableOpacity, TextInput,
+  KeyboardAvoidingView, Platform,
+} from 'react-native';
+import { AppLoader } from '../../components/common/AppLoader';
+import { Ionicons }         from '@expo/vector-icons';
+import { useBookingStore }  from '../../stores/bookingStore';
+import { useAuthStore }     from '../../stores/authStore';
+import { customerApi }      from '../../api/customerApi';
+import { vehicleApi, HanaVehicle } from '../../api/vehicleApi';
+import { bookingApi }       from '../../api/bookingApi';
+import { Input }            from '../../components/common/Input';
+import { Button }           from '../../components/common/Button';
+import { Avatar }           from '../../components/common/Avatar';
+import { showToast }        from '../../utils/toast';
+import type { Customer, ServiceTypeHint } from '../../types';
+>>>>>>> b4f26d8f (changes)
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 
 type Step = 'customer' | 'details' | 'confirm';
@@ -88,6 +106,15 @@ export const NewBookingScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             leftIcon="search-outline"
           />
 
+<<<<<<< HEAD
+=======
+          {/* Loading state */}
+          {customersLoading && (
+            <AppLoader visible size="sm" message="Loading customers…" />
+          )}
+
+          {/* Results */}
+>>>>>>> b4f26d8f (changes)
           {filteredCustomers.map(c => (
             <TouchableOpacity
               key={c.id}
@@ -143,7 +170,14 @@ export const NewBookingScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           </View>
 
           {/* Time Slots */}
+<<<<<<< HEAD
           <Text style={s.fieldLabel}>Time Slot</Text>
+=======
+          <View style={s.slotHeader}>
+            <Text style={s.fieldLabel}>Time Slot</Text>
+            {slotsLoading && <AppLoader visible size="xs" />}
+          </View>
+>>>>>>> b4f26d8f (changes)
           <View style={s.timeGrid}>
             {TIMES.map(t => (
               <TouchableOpacity
@@ -157,6 +191,7 @@ export const NewBookingScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           </View>
 
           {/* Vehicle (optional) */}
+<<<<<<< HEAD
           <Text style={s.fieldLabel}>Vehicle (optional)</Text>
           {customerVehicles.map(v => (
             <TouchableOpacity
@@ -170,6 +205,34 @@ export const NewBookingScreen: React.FC<{ navigation: any }> = ({ navigation }) 
               </Text>
             </TouchableOpacity>
           ))}
+=======
+          <Text style={s.fieldLabel}>
+            Vehicle (optional)
+            {vehiclesLoading && ' '}
+          </Text>
+          {vehiclesLoading ? (
+            <AppLoader visible size="sm" message="Loading vehicles…" />
+          ) : customerVehicles.length === 0 ? (
+            <Text style={s.emptyNote}>No vehicles registered for this customer</Text>
+          ) : (
+            customerVehicles.map(v => (
+              <TouchableOpacity
+                key={v._id}
+                style={[s.vehicleChip, selectedVehicle?._id === v._id && s.vehicleChipActive]}
+                onPress={() => setSelectedVehicle(selectedVehicle?._id === v._id ? null : v)}
+              >
+                <Ionicons
+                  name="car-outline"
+                  size={16}
+                  color={selectedVehicle?._id === v._id ? COLORS.primary : COLORS.textSecondary}
+                />
+                <Text style={[s.vehicleChipText, selectedVehicle?._id === v._id && { color: COLORS.primary }]}>
+                  {v.registrationNumber} · {[v.brand, v.model].filter(Boolean).join(' ')}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
+>>>>>>> b4f26d8f (changes)
 
           {/* Notes */}
           <Text style={s.fieldLabel}>Notes</Text>

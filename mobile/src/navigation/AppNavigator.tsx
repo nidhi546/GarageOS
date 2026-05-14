@@ -55,8 +55,21 @@ import { EstimateScreen } from "../screens/shared/EstimateScreen";
 import { InspectionScreen } from "../screens/shared/InspectionScreen";
 import { PaymentScreen } from "../screens/shared/PaymentScreen";
 import { NewBookingScreen } from "../screens/shared/NewBookingScreen";
-import { ProfileScreen } from "../screens/shared/ProfileScreen";
+import { ProfileScreen }        from "../screens/shared/ProfileScreen";
+import { EditProfileScreen }    from "../screens/shared/EditProfileScreen";
+import { ChangePasswordScreen } from "../screens/shared/ChangePasswordScreen";
 import { NotificationsScreen } from "../screens/shared/NotificationsScreen";
+<<<<<<< HEAD
+=======
+import { HanaJobCardListScreen } from "../screens/shared/HanaJobCardListScreen";
+import { HanaJobCardDetailScreen } from "../screens/shared/HanaJobCardDetailScreen";
+import { HanaAssignMechanicScreen } from "../screens/manager/HanaAssignMechanicScreen";
+import { HanaInspectionScreen } from "../screens/shared/HanaInspectionScreen";
+import { HanaAddMechanicScreen } from "../screens/manager/HanaAddMechanicScreen";
+import { HanaManageMechanicsScreen } from "../screens/manager/HanaManageMechanicsScreen";
+import { ReviseEstimateScreen } from "../screens/shared/ReviseEstimateScreen";
+import { PrivacyPolicyScreen } from "../screens/shared/PrivacyPolicyScreen";
+>>>>>>> b4f26d8f (changes)
 
 // ─── Navigator ────────────────────────────────────────────────────────────────
 const Stack = createNativeStackNavigator();
@@ -119,6 +132,11 @@ const AuthStack: React.FC = () => (
       name="RoleGuide"
       component={RoleGuideScreen}
       options={{ headerShown: true, title: "Role Guide" }}
+    />
+    <Stack.Screen
+      name="PrivacyPolicy"
+      component={PrivacyPolicyScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -197,6 +215,16 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           component={ProfileScreen}
           options={{ ...withDrawer, title: "Profile" }}
         />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfileScreen}
+          options={{ title: "Edit Profile" }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePasswordScreen}
+          options={{ title: "Change Password" }}
+        />
 
         {/* ── Detail screens (back arrow) ── */}
         <Stack.Screen
@@ -274,6 +302,51 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
           component={NewServiceScreen}
           options={{ title: "New Job Card" }}
         />
+<<<<<<< HEAD
+=======
+        <Stack.Screen
+          name="HanaJobCards"
+          component={HanaJobCardListScreen}
+          options={{ title: "Job Cards" }}
+        />
+        <Stack.Screen
+          name="HanaJobCardDetail"
+          component={HanaJobCardDetailScreen}
+          options={{ title: "Job Card Details" }}
+        />
+        <Stack.Screen
+          name="HanaAssignMechanic"
+          component={HanaAssignMechanicScreen}
+          options={{ title: "Assign Mechanic" }}
+        />
+        <Stack.Screen
+          name="HanaAddMechanic"
+          component={HanaAddMechanicScreen}
+          options={{ title: "Add Mechanic" }}
+        />
+        <Stack.Screen
+          name="HanaManageMechanics"
+          component={HanaManageMechanicsScreen}
+          options={{ title: "Manage Mechanics" }}
+        />
+        <Stack.Screen
+          name="HanaInspection"
+          component={HanaInspectionScreen}
+          options={({ route }: any) => ({
+            title: route.params?.type === 'post' ? 'Post-Trial Inspection' : 'Pre-Trial Inspection',
+          })}
+        />
+        <Stack.Screen
+          name="ReviseEstimate"
+          component={ReviseEstimateScreen}
+          options={{ title: 'Revise Estimate' }}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+          options={{ headerShown: false }}
+        />
+>>>>>>> b4f26d8f (changes)
       </Stack.Navigator>
     </DrawerProvider>
   );

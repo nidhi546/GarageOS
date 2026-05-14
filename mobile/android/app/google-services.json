@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "325090733687",
+    "project_id": "garageos-eba9f",
+    "storage_bucket": "garageos-eba9f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325090733687:android:f3a9194171914cd73e2072",
+        "android_client_info": {
+          "package_name": "com.hanagarageos.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQZtpItxaCeknpe62-RzG9TjJmzJ-AqMM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

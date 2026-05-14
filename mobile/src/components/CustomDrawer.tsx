@@ -21,7 +21,7 @@ const ROLE_COLOR: Record<string, string> = {
   OWNER:        COLORS.primary,
   SUPER_ADMIN:  '#7C3AED',
   MANAGER:      '#7C3AED',
-  MECHANIC:     COLORS.success,
+  MECHANIC:     '#4F46E5',
   RECEPTIONIST: COLORS.warning,
 };
 
@@ -162,14 +162,29 @@ export const DrawerProvider: React.FC<DrawerProviderProps> = ({
 
           {/* Profile header */}
           <View style={[s.header, { backgroundColor: roleColor }]}>
-            <Avatar name={user?.name ?? 'User'} size={52} />
-            <View style={s.headerInfo}>
-              <Text style={s.headerName} numberOfLines={1}>{user?.name}</Text>
-              <Text style={s.headerRole}>{user?.role}</Text>
-              {company && (
-                <Text style={s.headerCompany} numberOfLines={1}>{company.name}</Text>
-              )}
+            <View style={s.avatarRing}>
+              <Avatar
+                name={user?.name ?? 'User'}
+                size={72}
+                imageUrl={(user as any)?.avatar}
+              />
             </View>
+            <Text style={s.headerName} numberOfLines={1}>
+              {(user as any)?.legalname ?? user?.name}
+            </Text>
+            {(user?.mobile ?? (user as any)?.phone) ? (
+              <Text style={s.headerMobile}>
+                {user?.mobile ?? (user as any)?.phone}
+              </Text>
+            ) : null}
+            <View style={s.rolePill}>
+              <Text style={s.rolePillText}>
+                {user?.role?.replace(/_/g, ' ')}
+              </Text>
+            </View>
+            {company && (
+              <Text style={s.headerCompany} numberOfLines={1}>{company.name}</Text>
+            )}
           </View>
 
           {/* Menu */}
@@ -238,11 +253,39 @@ const s = StyleSheet.create({
   },
 
   // Header
-  header:      { paddingTop: Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight ?? 24) + 16, paddingBottom: SPACING.lg, paddingHorizontal: SPACING.lg, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  headerInfo:  { flex: 1 },
-  headerName:  { fontSize: FONT.sizes.md, fontWeight: '700', color: '#fff' },
-  headerRole:  { fontSize: FONT.sizes.xs, color: 'rgba(255,255,255,0.75)', marginTop: 2, fontWeight: '600' },
-  headerCompany: { fontSize: FONT.sizes.xs, color: 'rgba(255,255,255,0.6)', marginTop: 1 },
+  header: {
+    paddingTop:       Platform.OS === 'ios' ? 60 : (StatusBar.currentHeight ?? 24) + 20,
+    paddingBottom:    SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    alignItems:       'center',
+  },
+  avatarRing: {
+    width:        80,
+    height:       80,
+    borderRadius: 40,
+    borderWidth:  3,
+    borderColor:  'rgba(255,255,255,0.45)',
+    overflow:     'hidden',
+    marginBottom: SPACING.sm,
+  },
+  headerName:    { fontSize: FONT.sizes.lg, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  headerMobile:  { fontSize: FONT.sizes.xs, color: 'rgba(255,255,255,0.7)', marginTop: 3 },
+  rolePill: {
+    backgroundColor:  'rgba(255,255,255,0.2)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical:   3,
+    borderRadius:      RADIUS.full,
+    marginTop:         SPACING.xs,
+    marginBottom:      2,
+  },
+  rolePillText: {
+    fontSize:      FONT.sizes.xs,
+    color:         '#fff',
+    fontWeight:    '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  headerCompany: { fontSize: FONT.sizes.xs, color: 'rgba(255,255,255,0.55)', marginTop: 4, textAlign: 'center' },
 
   // Menu
   menu:          { flex: 1, paddingTop: SPACING.xs },

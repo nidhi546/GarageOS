@@ -55,6 +55,9 @@ export interface User {
   /** @deprecated use role — kept for backward compat */
   companyName?: string;
   avatar?: string;
+  address?: string;
+  experience?: string;
+  specialization?: string;
   is_active: boolean;
   created_at: string;
 }

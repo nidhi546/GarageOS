@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
+<<<<<<< HEAD
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../stores/authStore";
@@ -20,6 +21,41 @@ import { formatCurrency } from "../../utils/currency";
 import { useDrawer } from "../../components/CustomDrawer";
 import { useInvoiceStore } from "../../stores/invoiceStore";
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from "../../config/theme";
+=======
+  Alert,
+  Platform,
+} from 'react-native';
+import { AppLoaderModal } from '../../components/common/AppLoaderModal';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore }        from '../../stores/authStore';
+import { useHanaJobCardStore } from '../../stores/hanaJobCardStore';
+import { useNotificationStore } from '../../stores/notificationStore';
+import { EmptyState }          from '../../components/common/EmptyState';
+import { ApprovalCard }        from '../../components/common/ApprovalCard';
+import { formatCurrency }      from '../../utils/currency';
+import { useDrawer }           from '../../components/CustomDrawer';
+import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
+import { estimateApi, HanaEstimate } from '../../api/estimateApi';
+import { dashboardApi, DashboardRevenue } from '../../api/dashboardApi';
+
+// ─── Status config ────────────────────────────────────────────────────────────
+
+const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
+  open:        { label: 'Open',        color: COLORS.warning, bg: COLORS.warningLight },
+  in_progress: { label: 'In Progress', color: COLORS.info,    bg: COLORS.infoLight    },
+  completed:   { label: 'Completed',   color: COLORS.success, bg: COLORS.successLight },
+  cancelled:   { label: 'Cancelled',   color: COLORS.danger,  bg: COLORS.dangerLight  },
+};
+
+// ─── Quick actions ────────────────────────────────────────────────────────────
+
+const QUICK_ACTIONS = [
+  { icon: 'add-circle-outline' as const, label: 'New Job',  screen: 'CreateJobCard',   color: COLORS.primary, bg: COLORS.primaryLight },
+  { icon: 'car-outline'        as const, label: 'Vehicle',  screen: 'AddVehicle',      color: COLORS.info,    bg: COLORS.infoLight    },
+  { icon: 'people-outline'     as const, label: 'Mechanic', screen: 'HanaAddMechanic', color: COLORS.success, bg: COLORS.successLight },
+  { icon: 'bar-chart-outline'  as const, label: 'Reports',  screen: 'Revenue',         color: COLORS.warning, bg: COLORS.warningLight },
+];
+>>>>>>> b4f26d8f (changes)
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -154,7 +190,12 @@ export const OwnerDashboard: React.FC<{ navigation: any }> = ({
   });
 
   return (
+<<<<<<< HEAD
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+=======
+    <SafeAreaView style={s.safe}>
+      <AppLoaderModal visible={approvalsLoading} message="Loading approvals…" />
+>>>>>>> b4f26d8f (changes)
       <ScrollView
         style={s.container}
         contentContainerStyle={s.content}
@@ -219,6 +260,7 @@ export const OwnerDashboard: React.FC<{ navigation: any }> = ({
           />
         </View>
 
+<<<<<<< HEAD
         {/* ── Operational KPIs ── */}
         <View style={s.statsRow}>
           <StatCard
@@ -332,6 +374,34 @@ export const OwnerDashboard: React.FC<{ navigation: any }> = ({
                 jobCard={job}
                 onPress={() =>
                   navigation.navigate("JobCardDetail", { id: job.id })
+=======
+          {approvals.length === 0 ? (
+            <View style={s.emptyApprovals}>
+              <Ionicons name="checkmark-circle" size={36} color={COLORS.success} />
+              <Text style={s.emptyApprovalsText}>All caught up — no pending approvals</Text>
+            </View>
+          ) : (
+            approvals.slice(0, 5).map(a => (
+              <ApprovalCard
+                key={a._id}
+                approval={{
+                  _id:             a._id,
+                  type:            'estimate',
+                  title:           a.vehicleName ?? a.registrationNumber ?? 'Estimate',
+                  description:     `₹${(a.total || 0).toLocaleString('en-IN')} · ${a.items.length} item${a.items.length !== 1 ? 's' : ''}`,
+                  referenceId:     a.jobcardId,
+                  requestedByName: a.createdBy,
+                  status:          'pending',
+                  createdAt:       a.createdAt,
+                }}
+                processing={processingId === a._id}
+                onApprove={() => handleApprove(a)}
+                onReject={() => handleReject(a)}
+                onViewDetails={
+                  a.jobcardId
+                    ? () => navigation.navigate('HanaJobCardDetail', { id: a.jobcardId })
+                    : undefined
+>>>>>>> b4f26d8f (changes)
                 }
               />
             ))

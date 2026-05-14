@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, SafeAreaView, ActivityIndicator,
+  TouchableOpacity, SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { authService } from '../../services/authService';
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 import { CREDENTIALS, type UserCredential } from '../../config/credentials';
+import { AppLoader } from '../../components/common/AppLoader';
 
 // ─── Role Card ────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ const RoleCard: React.FC<{
         activeOpacity={0.75}
       >
         {loading
-          ? <ActivityIndicator size={12} color={cred.color} />
+          ? <AppLoader visible size="xs" />
           : <Text style={[s.loginBtnText, { color: cred.color }]}>Login →</Text>
         }
       </TouchableOpacity>

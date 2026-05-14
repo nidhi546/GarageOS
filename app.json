@@ -13,14 +13,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.garageos.app"
+      "bundleIdentifier": "com.hanagarageos.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./mobile/assets/adaptive-icon.png",
         "backgroundColor": "#F7F9FC"
       },
-      "package": "com.garageos.app"
+      "package": "com.hanagarageos.app"
     },
     "plugins": [
       "expo-font"

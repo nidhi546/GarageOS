@@ -1,4 +1,4 @@
-package com.garageos.app
+package com.hanagarageos.app
 
 import android.app.Application
 import android.content.res.Configuration

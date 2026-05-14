@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { AppLoader } from '../../components/common/AppLoader';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useJobCardStore } from '../../stores/jobCardStore';
@@ -315,7 +316,7 @@ export const JobCardDetailScreen: React.FC<{ route: any; navigation: any }> = ({
           activeOpacity={0.85}
         >
           {generatingInvoice
-            ? <ActivityIndicator size="small" color="#fff" />
+            ? <AppLoader visible size="sm" />
             : <Ionicons name="receipt-outline" size={20} color="#fff" />
           }
           <Text style={s.generateInvoiceText}>
@@ -333,7 +334,7 @@ export const JobCardDetailScreen: React.FC<{ route: any; navigation: any }> = ({
           activeOpacity={0.85}
         >
           {deliveringVehicle
-            ? <ActivityIndicator size="small" color="#fff" />
+            ? <AppLoader visible size="sm" />
             : <Ionicons name="car-outline" size={20} color="#fff" />
           }
           <Text style={s.deliverBtnText}>

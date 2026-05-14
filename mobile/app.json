@@ -6,18 +6,15 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "garageos",
-
     "icon": "./assets/icon.png",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
-
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.garageos.app",
+      "bundleIdentifier": "com.hanagarageos.app",
       "icon": "./assets/icon.png",
       "splash": {
         "image": "./assets/splash.png",
@@ -26,9 +23,8 @@
         "tabletImage": "./assets/splash.png"
       }
     },
-
     "android": {
-      "package": "com.garageos.app",
+      "package": "com.hanagarageos.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#29B6F6"
@@ -39,11 +35,9 @@
         "backgroundColor": "#FFFFFF"
       }
     },
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "plugins": [
       "expo-notifications",
       [
@@ -52,7 +46,8 @@
           "photosPermission": "Allow GarageOS to access your photos."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-asset"
     ]
   }
 }

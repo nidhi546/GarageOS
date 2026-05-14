@@ -1,4 +1,4 @@
-package com.garageos.app
+package com.hanagarageos.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

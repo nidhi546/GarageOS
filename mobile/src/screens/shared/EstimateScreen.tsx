@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, TextInput, Alert, ActivityIndicator,
+  TouchableOpacity, TextInput, Alert,
 } from 'react-native';
+import { AppLoaderModal } from '../../components/common/AppLoaderModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useJobCardStore } from '../../stores/jobCardStore';
@@ -13,6 +14,7 @@ import { canTransition } from '../../constants/jobCardLifecycle';
 import type { Estimate, EstimateItem } from '../../types';
 import { shareEstimateWhatsApp, shareEstimatePdf } from '../../utils/estimatePdf';
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
+import { AppLoader } from '@/components/common/AppLoader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -377,14 +379,7 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
 
   // ── Loading state ──────────────────────────────────────────────────────────
 
-  if (loadingEstimate) {
-    return (
-      <View style={s.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={s.loadingText}>Loading estimate...</Text>
-      </View>
-    );
-  }
+  if (loadingEstimate) return <AppLoaderModal visible message="Loading estimate…" />;
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -555,13 +550,38 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
               activeOpacity={0.85}
             >
               {saving
+<<<<<<< HEAD
                 ? <ActivityIndicator size="small" color={COLORS.primary} />
                 : <Ionicons name="save-outline" size={18} color={COLORS.primary} />
+=======
+                ? <AppLoader visible size="sm" />
+                : <Ionicons name="save-outline" size={16} color={COLORS.primary} />
+>>>>>>> b4f26d8f (changes)
               }
               <Text style={s.saveBtnText}>{saving ? 'Saving...' : 'Save Draft'}</Text>
             </TouchableOpacity>
 
+<<<<<<< HEAD
             {/* Approve + Reject row — owner/manager only */}
+=======
+            {/* ── MECHANIC / RECEPTIONIST: Send for Approval ── */}
+            {!canApproveEstimate() && (
+              <TouchableOpacity
+                style={[s.footerBtn, s.sendBtn]}
+                onPress={handleSendForApproval}
+                disabled={saving}
+                activeOpacity={0.85}
+              >
+                {saving
+                  ? <AppLoader visible size="sm" />
+                  : <Ionicons name="send-outline" size={16} color="#fff" />
+                }
+                <Text style={s.sendBtnText}>Send for Approval</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* ── OWNER / MANAGER: Approve + Reject (direct, no queue) ── */}
+>>>>>>> b4f26d8f (changes)
             {canApproveEstimate() && estimate && (
               <View style={s.approveRejectRow}>
                 <TouchableOpacity
@@ -571,8 +591,13 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
                   activeOpacity={0.85}
                 >
                   {approving
+<<<<<<< HEAD
                     ? <ActivityIndicator size="small" color="#fff" />
                     : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+=======
+                    ? <AppLoader visible size="sm" />
+                    : <Ionicons name="checkmark-circle-outline" size={16} color="#fff" />
+>>>>>>> b4f26d8f (changes)
                   }
                   <Text style={s.approveBtnText}>{approving ? 'Approving...' : 'Approve'}</Text>
                 </TouchableOpacity>
@@ -588,7 +613,41 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
                 </TouchableOpacity>
               </View>
             )}
+<<<<<<< HEAD
           </>
+=======
+
+            {/* Owner / Manager — can approve or reject inline */}
+            {canApproveEstimate() && (
+              <>
+                <TouchableOpacity
+                  style={[s.footerBtn, s.approveBtn]}
+                  onPress={handleApprove}
+                  disabled={approving}
+                  activeOpacity={0.85}
+                >
+                  {approving
+                    ? <AppLoader visible size="sm" />
+                    : <Ionicons name="checkmark-circle-outline" size={16} color="#fff" />
+                  }
+                  <Text style={s.approveBtnText}>
+                    {approving ? 'Approving...' : 'Approve'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[s.footerBtn, s.rejectBtn]}
+                  onPress={handleReject}
+                  disabled={rejecting || approving}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="close-circle-outline" size={16} color={COLORS.danger} />
+                  <Text style={s.rejectBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+>>>>>>> b4f26d8f (changes)
         )}
 
         {/* Revise — when rejected */}
@@ -618,7 +677,7 @@ export const EstimateScreen: React.FC<{ route: any; navigation: any }> = ({ rout
               activeOpacity={0.85}
             >
               {sharing
-                ? <ActivityIndicator size="small" color="#fff" />
+                ? <AppLoader visible size="sm" />
                 : <Ionicons name="logo-whatsapp" size={20} color="#fff" />
               }
               <Text style={s.whatsappBtnText}>

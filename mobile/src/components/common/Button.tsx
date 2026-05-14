@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import {
   Animated, TouchableWithoutFeedback,
-  ActivityIndicator, Text, StyleSheet, ViewStyle,
+  Text, StyleSheet, ViewStyle,
 } from 'react-native';
+import { AppLoader } from './AppLoader';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING, FONT, ANIMATION } from '../../config/theme';
 
@@ -94,9 +95,8 @@ export const Button: React.FC<Props> = ({
       useNativeDriver: true,
     }).start();
 
-  const spinnerColor = variant === 'primary' || variant === 'danger' ? '#fff' : COLORS.primary;
-  const iconColor    = TEXT_COLOR[variant];
-  const iconEl = icon && !loading
+  const iconColor = TEXT_COLOR[variant];
+  const iconEl    = icon && !loading
     ? <Ionicons name={icon} size={ICON_SIZE[size]} color={iconColor} />
     : null;
 
@@ -120,7 +120,7 @@ export const Button: React.FC<Props> = ({
         ]}
       >
         {loading ? (
-          <ActivityIndicator color={spinnerColor} size="small" />
+          <AppLoader visible size="sm" />
         ) : (
           <>
             {!iconRight && iconEl}

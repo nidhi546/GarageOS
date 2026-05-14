@@ -1,9 +1,27 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useJobCardStore } from '../../stores/jobCardStore';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
+=======
+import React, { useCallback, useState } from 'react';
+import {
+  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  Modal, TextInput, KeyboardAvoidingView, Platform,
+  Alert, RefreshControl,
+} from 'react-native';
+import { AppLoader }      from '../../components/common/AppLoader';
+import { AppLoaderModal } from '../../components/common/AppLoaderModal';
+import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons }       from '@expo/vector-icons';
+import { estimateApi, HanaEstimate } from '../../api/estimateApi';
+import { jobcardApi }                from '../../api/jobcardApi';
+import { useAuthStore }   from '../../stores/authStore';
+import { EmptyState }     from '../../components/common/EmptyState';
+import { showToast }      from '../../utils/toast';
+>>>>>>> b4f26d8f (changes)
 import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
 import { dummyEstimates } from '../../dummy/estimates';
 import { Estimate } from '../../types';
@@ -86,7 +104,16 @@ export const ApprovalsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             <Ionicons name="create-outline" size={16} color={COLORS.warning} />
             <Text style={s.reviseText}>Revise</Text>
           </TouchableOpacity>
+<<<<<<< HEAD
           <TouchableOpacity style={s.approveBtn} onPress={() => handleApprove(item.id)}>
+=======
+
+          <TouchableOpacity
+            style={[s.approveBtn, isProcessing && s.btnDisabled]}
+            onPress={() => handleApprove(item)}
+            disabled={!!processingId}
+          >
+>>>>>>> b4f26d8f (changes)
             <Ionicons name="checkmark-outline" size={16} color="#fff" />
             <Text style={s.approveText}>Approve</Text>
           </TouchableOpacity>
@@ -95,10 +122,15 @@ export const ApprovalsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     );
   };
 
+<<<<<<< HEAD
   if (isLoading) return <LoadingSpinner fullScreen />;
 
+=======
+>>>>>>> b4f26d8f (changes)
   return (
     <View style={s.container}>
+      <AppLoaderModal visible={loading && estimates.length === 0} />
+      <AppLoaderModal visible={!!processingId} message="Processing…" />
       <FlatList
         data={estimates}
         keyExtractor={i => i.id}
@@ -106,6 +138,63 @@ export const ApprovalsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         contentContainerStyle={s.list}
         ListEmptyComponent={<EmptyState title="All clear!" message="No estimates pending approval" icon="checkmark-circle-outline" />}
       />
+<<<<<<< HEAD
+=======
+
+      {/* ── Reject reason modal ── */}
+      <Modal
+        visible={!!rejectTarget}
+        transparent
+        animationType="slide"
+        onRequestClose={() => !rejecting && setRejectTarget(null)}
+      >
+        <KeyboardAvoidingView
+          style={s.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={s.modalSheet}>
+            <View style={s.modalHandle} />
+            <Text style={s.modalTitle}>Reject Estimate</Text>
+            <Text style={s.modalSub}>
+              {rejectTarget?.vehicleName ?? rejectTarget?.registrationNumber ?? 'Estimate'}
+            </Text>
+
+            <TextInput
+              style={s.reasonInput}
+              placeholder="Reason for rejection (optional)"
+              placeholderTextColor={COLORS.textMuted}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              editable={!rejecting}
+            />
+
+            <View style={s.modalActions}>
+              <TouchableOpacity
+                style={s.cancelBtn}
+                onPress={() => !rejecting && setRejectTarget(null)}
+                disabled={rejecting}
+              >
+                <Text style={s.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.confirmRejectBtn, rejecting && s.btnDisabled]}
+                onPress={confirmReject}
+                disabled={rejecting}
+              >
+                {rejecting ? (
+                  <AppLoader visible size="sm" />
+                ) : (
+                  <Text style={s.confirmRejectText}>Reject</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+>>>>>>> b4f26d8f (changes)
     </View>
   );
 };

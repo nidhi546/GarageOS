@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+=======
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, Alert,
+} from 'react-native';
+import { AppLoaderModal } from '../../components/common/AppLoaderModal';
+>>>>>>> b4f26d8f (changes)
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { Button } from '../../components/common/Button';
@@ -22,6 +31,13 @@ export const InvoiceScreen: React.FC<{ route: any; navigation: any }> = ({ route
     );
   }
 
+<<<<<<< HEAD
+=======
+  if (loading) return <AppLoaderModal visible message="Loading invoice…" />;
+
+  // ── No invoice yet — offer to generate ────────────────────────────────────
+
+>>>>>>> b4f26d8f (changes)
   if (!invoice) {
     return (
       <View style={s.restricted}>
