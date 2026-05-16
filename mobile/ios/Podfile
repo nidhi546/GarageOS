@@ -52,13 +52,49 @@ target 'GarageOS' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # This is necessary for Xcode 14, because it signs resource bundles by default
-    # when building for devices.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |cfg|
+        # Raise any pod still advertising a 4.3 deployment target to 15.1.
+        # CocoaPods assigns 4.3 to pods that declare no minimum; Xcode 26
+        # rejects anything below 12.0.
+        dt = cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if dt.nil? || dt.to_f < 15.1
+          cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        end
+
+        # The base Pods project is generated with gnu++14. In C++14,
+        # std::string::data() returns const char* even on non-const strings,
+        # so jsi.h's snprintf(buffer.data(), ...) fails because snprintf
+        # expects char*. C++17 adds the non-const overload. Only upgrade —
+        # never downgrade pods that already declare c++20.
+        std = cfg.build_settings['CLANG_CXX_LANGUAGE_STANDARD']
+        if std.nil? || std == 'gnu++14' || std == 'c++14'
+          cfg.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
+      end
+
+      # The Hermes "Replace Hermes" script phase declares no output files so
+      # Xcode marks it stale on every build. Declare the xcframework it
+      # produces so Xcode can skip the phase when the output is current.
+      # We resolve the path dynamically so it works regardless of whether
+      # the pod ships hermes.xcframework or hermesvm.xcframework.
+      target.build_phases.each do |phase|
+        next unless phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+        next unless phase.name&.include?('[Hermes] Replace Hermes')
+        next unless (phase.output_paths || []).empty?
+        hermes_fw = Dir["#{installer.sandbox.root}/hermes-engine/destroot/Library/Frameworks/**/*.xcframework"].first
+        if hermes_fw
+          phase.output_paths = [hermes_fw.sub(installer.sandbox.root.to_s, '$(PODS_ROOT)')]
+        end
+      end
+    end
+
+    # Xcode 14+ signs resource bundles by default when building for devices.
     installer.target_installation_results.pod_target_installation_results
       .each do |pod_name, target_installation_result|
       target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
-        resource_bundle_target.build_configurations.each do |config|
-          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        resource_bundle_target.build_configurations.each do |cfg|
+          cfg.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
     end
