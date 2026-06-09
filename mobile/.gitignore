@@ -3,7 +3,6 @@ node_modules/
 
 # Expo
 .expo/
-dist/
 
 # Build outputs
 android/build/
@@ -17,3 +16,15 @@ ios/Pods/
 
 # macOS
 .DS_Store
+
+# Credentials (keep local only)
+keystore.jks
+*.jks
+CRED_file
+*firebase-adminsdk*.json
+*.p12
+*.pem
+GoogleService-Info.plist
+google-services.json
+.env
+.env.*
