@@ -42,8 +42,11 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const token = await StorageService.getAccessToken();
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+    if (!isAuthEndpoint) {
+      const token = await StorageService.getAccessToken();
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+    }
     if (__DEV__) console.log(`[HanaAPI] → ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },

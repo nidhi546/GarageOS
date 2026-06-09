@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+
+# Build outputs
+android/build/
+android/.gradle/
+ios/build/
+ios/DerivedData/
+ios/Pods/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store

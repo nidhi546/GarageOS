@@ -9,10 +9,10 @@ export const STORAGE_KEYS = {
 
 export const StorageService = {
   async setAuthData(accessToken: string, refreshToken: string, user: User): Promise<void> {
-    await AsyncStorage.multiSet([
-      [STORAGE_KEYS.ACCESS_TOKEN,  accessToken],
-      [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
-      [STORAGE_KEYS.USER_DATA,     JSON.stringify(user)],
+    await Promise.all([
+      AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN,  accessToken),
+      AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken),
+      AsyncStorage.setItem(STORAGE_KEYS.USER_DATA,     JSON.stringify(user)),
     ]);
   },
 
@@ -31,6 +31,6 @@ export const StorageService = {
   },
 
   async clearAuth(): Promise<void> {
-    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+    await Promise.all(Object.values(STORAGE_KEYS).map(key => AsyncStorage.removeItem(key)));
   },
 };
