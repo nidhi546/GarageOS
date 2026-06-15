@@ -1,7 +1,18 @@
 // mechanicApi — thin wrapper over appuser filtered by role: 'mechanic'
 // Single source of truth: all staff accounts live in the 'appuser' collection.
-import RNBcrypt from 'react-native-bcrypt';
+import { getRandomValues } from 'expo-crypto';
 import { appuserApi, AppUser, UpdateAppUserPayload } from './appuserApi';
+
+// UMD module — use require() to avoid Babel interop helpers that break on Hermes.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const RNBcrypt = require('react-native-bcrypt') as typeof import('react-native-bcrypt');
+
+// Hermes doesn't seed Math.random for the RC4 PRNG; supply a real fallback.
+RNBcrypt.setRandomFallback((len: number) => {
+  const buf = new Uint8Array(len);
+  getRandomValues(buf);
+  return Array.from(buf);
+});
 
 export type HanaMechanicRecord = AppUser;
 

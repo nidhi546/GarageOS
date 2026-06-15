@@ -23,6 +23,12 @@ function patchFile(filePath) {
     patched = patched.replace(/\["node"\]/g, `["${nodePath}"]`);
     patched = patched.replace(/\['node'\]/g, `['${nodePath}']`);
 
+    // 'node', as first element in a multi-line array (e.g. String[] args = [\n  'node',)
+    patched = patched.replace(/(\[\s*\n\s*)'node',/g, `$1'${nodePath}',`);
+
+    // "node", as first element in a multi-line Kotlin listOf() (e.g. listOf(\n    "node",)
+    patched = patched.replace(/(listOf\(\s*\n\s*)"node",/g, `$1"${nodePath}",`);
+
     if (patched !== original) {
       fs.writeFileSync(filePath, patched);
       patchCount++;
@@ -32,7 +38,7 @@ function patchFile(filePath) {
 }
 
 function scan(dir, depth) {
-  if (depth > 6) return;
+  if (depth > 15) return;
   let entries;
   try { entries = fs.readdirSync(dir); } catch (_) { return; }
   for (const entry of entries) {
@@ -42,7 +48,7 @@ function scan(dir, depth) {
       const stat = fs.statSync(full);
       if (stat.isDirectory()) {
         scan(full, depth + 1);
-      } else if (entry.endsWith('.gradle')) {
+      } else if (entry.endsWith('.gradle') || entry.endsWith('.kt')) {
         patchFile(full);
       }
     } catch (_) {}
@@ -50,4 +56,4 @@ function scan(dir, depth) {
 }
 
 scan(nodeModules, 0);
-console.log(`Done. Patched ${patchCount} gradle file(s).`);
+console.log(`Done. Patched ${patchCount} gradle/kotlin file(s).`);
