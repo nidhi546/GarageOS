@@ -243,16 +243,6 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               label="Company"
               value={company!.name}
             />
-            <ProfileDivider />
-            <ProfileItem
-              icon="ribbon-outline"
-              iconBg={COLORS.successLight}
-              iconColor={COLORS.success}
-              label="Subscription Plan"
-              badge={company!.subscription_plan.toUpperCase()}
-              badgeBg={COLORS.primaryLight}
-              badgeColor={COLORS.primary}
-            />
             {company!.email ? (
               <>
                 <ProfileDivider />
