@@ -1,39 +1,52 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ScrollView, RefreshControl, TextInput,
+  ScrollView, RefreshControl, TextInput, Dimensions,
 } from 'react-native';
 import { Ionicons }       from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore }   from '../../stores/authStore';
+import { useDrawer }      from '../../components/CustomDrawer';
 import { jobcardApi, HanaJobCard } from '../../api/jobcardApi';
 import { EmptyState }     from '../../components/common/EmptyState';
-import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
+import { SHADOW, SPACING } from '../../config/theme';
 
-// ─── Status display ───────────────────────────────────────────────────────────
+const { width: SW } = Dimensions.get('window');
+
+// ─── Theme ────────────────────────────────────────────────────────────────────
+
+const PRIMARY  = '#4F46E5';
+const DARK     = '#0F172A';
+const BG       = '#F1F5F9';
+const SURFACE  = '#FFFFFF';
+const TEXT     = '#0F172A';
+const MUTED    = '#94A3B8';
+const SUBTLE   = '#64748B';
+
+// ─── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
-  open:                 { label: 'Assigned',         color: COLORS.info,    bg: COLORS.infoLight    },
-  assigned:             { label: 'Assigned',         color: COLORS.info,    bg: COLORS.infoLight    },
-  in_progress:          { label: 'In Progress',      color: COLORS.primary, bg: COLORS.primaryLight },
-  awaiting_approval:    { label: 'Awaiting Approval',color: COLORS.warning, bg: COLORS.warningLight },
-  approved_for_invoice: { label: 'Approved',         color: COLORS.success, bg: COLORS.successLight },
-  revision_requested:   { label: 'Revision Needed',  color: COLORS.danger,  bg: COLORS.dangerLight  },
-  completed:            { label: 'Completed',        color: COLORS.success, bg: COLORS.successLight },
-  cancelled:            { label: 'Cancelled',        color: COLORS.danger,  bg: COLORS.dangerLight  },
+  open:                 { label: 'Assigned',         color: '#3B82F6', bg: '#EFF6FF' },
+  assigned:             { label: 'Assigned',         color: '#3B82F6', bg: '#EFF6FF' },
+  in_progress:          { label: 'In Progress',      color: '#7C3AED', bg: '#F5F3FF' },
+  awaiting_approval:    { label: 'Awaiting Approval',color: '#D97706', bg: '#FFFBEB' },
+  approved_for_invoice: { label: 'Approved',         color: '#059669', bg: '#ECFDF5' },
+  revision_requested:   { label: 'Revision Needed',  color: '#DC2626', bg: '#FEF2F2' },
+  completed:            { label: 'Completed',        color: '#059669', bg: '#ECFDF5' },
+  cancelled:            { label: 'Cancelled',        color: '#6B7280', bg: '#F9FAFB' },
 };
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
 type FilterKey = 'all' | 'assigned' | 'in_progress' | 'awaiting_approval' | 'revision_requested' | 'completed';
 
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'all',                label: 'All'      },
-  { key: 'assigned',           label: 'Assigned' },
-  { key: 'in_progress',        label: 'Active'   },
-  { key: 'awaiting_approval',  label: 'Pending'  },
-  { key: 'revision_requested', label: 'Revision' },
-  { key: 'completed',          label: 'Done'     },
+const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+  { key: 'all',                label: 'All',       icon: 'layers-outline'          },
+  { key: 'assigned',           label: 'Assigned',  icon: 'clipboard-outline'       },
+  { key: 'in_progress',        label: 'Active',    icon: 'play-circle-outline'     },
+  { key: 'awaiting_approval',  label: 'Pending',   icon: 'time-outline'            },
+  { key: 'revision_requested', label: 'Revision',  icon: 'refresh-circle-outline'  },
+  { key: 'completed',          label: 'Done',      icon: 'checkmark-done-outline'  },
 ];
 
 function matchFilter(j: HanaJobCard, f: FilterKey): boolean {
@@ -42,10 +55,111 @@ function matchFilter(j: HanaJobCard, f: FilterKey): boolean {
   return j.status === f;
 }
 
+const formatDate = (iso?: string) => {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
+
+// ─── Job Card ─────────────────────────────────────────────────────────────────
+
+const JobCard: React.FC<{ job: HanaJobCard; onPress: () => void }> = ({ job, onPress }) => {
+  const cfg        = STATUS_CFG[job.status] ?? STATUS_CFG.open;
+  const isRevision = job.status === 'revision_requested';
+  const isPending  = job.status === 'awaiting_approval';
+  const isActive   = job.status === 'in_progress';
+
+  return (
+    <TouchableOpacity style={jc.card} onPress={onPress} activeOpacity={0.88}>
+      {/* Colored top strip */}
+      <View style={[jc.strip, { backgroundColor: cfg.color }]}>
+        <Text style={jc.stripId}>#{job._id.slice(-8).toUpperCase()}</Text>
+        <View style={jc.stripRight}>
+          {job.createdAt && (
+            <View style={jc.dateRow}>
+              <Ionicons name="calendar-outline" size={10} color="rgba(255,255,255,0.7)" />
+              <Text style={jc.dateText}>{formatDate(job.createdAt)}</Text>
+            </View>
+          )}
+          <View style={[jc.statusDot, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
+            <Text style={jc.statusLabel}>{cfg.label}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Body */}
+      <View style={jc.body}>
+        {/* Vehicle info */}
+        <View style={jc.vehicleRow}>
+          <View style={[jc.vehicleIcon, { backgroundColor: cfg.color + '18' }]}>
+            <Ionicons name="car-sport-outline" size={22} color={cfg.color} />
+          </View>
+          <View style={jc.vehicleInfo}>
+            <Text style={jc.plate}>{job.registrationNumber ?? '—'}</Text>
+            <Text style={jc.model}>
+              {[job.brand, job.model].filter(Boolean).join(' ') || 'Unknown vehicle'}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={MUTED} />
+        </View>
+
+        {/* Work type */}
+        {job.workType ? (
+          <View style={jc.workRow}>
+            <Ionicons name="construct-outline" size={13} color={SUBTLE} />
+            <Text style={jc.workText} numberOfLines={1}>{job.workType}</Text>
+          </View>
+        ) : null}
+
+        {/* Alert banners */}
+        {isRevision && (
+          <View style={[jc.banner, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
+            <Ionicons name="alert-circle" size={14} color="#DC2626" />
+            <Text style={[jc.bannerText, { color: '#991B1B' }]}>Revision needed — update estimate and resubmit</Text>
+          </View>
+        )}
+        {isPending && (
+          <View style={[jc.banner, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+            <Ionicons name="time" size={14} color="#D97706" />
+            <Text style={[jc.bannerText, { color: '#92400E' }]}>Submitted — waiting for owner review</Text>
+          </View>
+        )}
+        {isActive && (
+          <View style={[jc.banner, { backgroundColor: '#F5F3FF', borderColor: '#C4B5FD' }]}>
+            <Ionicons name="flash" size={14} color="#7C3AED" />
+            <Text style={[jc.bannerText, { color: '#5B21B6' }]}>Work is currently in progress</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const jc = StyleSheet.create({
+  card:        { backgroundColor: SURFACE, borderRadius: 20, marginBottom: 12, overflow: 'hidden', ...SHADOW.sm },
+  strip:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
+  stripId:     { fontSize: 12, fontWeight: '800', color: '#fff', letterSpacing: 0.6 },
+  stripRight:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateRow:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  dateText:    { fontSize: 10, color: 'rgba(255,255,255,0.75)', fontWeight: '500' },
+  statusDot:   { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  statusLabel: { fontSize: 10, fontWeight: '700', color: '#fff' },
+  body:        { padding: 14, gap: 10 },
+  vehicleRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  vehicleIcon: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  vehicleInfo: { flex: 1 },
+  plate:       { fontSize: 16, fontWeight: '800', color: TEXT, letterSpacing: 0.5 },
+  model:       { fontSize: 12, color: SUBTLE, marginTop: 2 },
+  workRow:     { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#F8FAFC', borderRadius: 9, paddingHorizontal: 10, paddingVertical: 8 },
+  workText:    { fontSize: 12, color: SUBTLE, flex: 1, fontWeight: '500' },
+  banner:      { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
+  bannerText:  { fontSize: 12, fontWeight: '600', flex: 1 },
+});
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { user } = useAuthStore();
+  const { user }         = useAuthStore();
+  const { toggleDrawer } = useDrawer();
 
   const [jobs,       setJobs]       = useState<HanaJobCard[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -53,27 +167,35 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
   const [search,     setSearch]     = useState('');
   const [filter,     setFilter]     = useState<FilterKey>('all');
 
+  // ── Dark mechanic header ──
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle:      { backgroundColor: DARK },
+      headerTitleStyle: { color: '#fff', fontWeight: '800', fontSize: 16 },
+      headerTintColor:  PRIMARY,
+      title: 'My Jobs',
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={toggleDrawer}
+          style={{ marginLeft: 12 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="menu-outline" size={26} color="#fff" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, toggleDrawer]);
+
   const load = useCallback(async () => {
     try {
       const data = await jobcardApi.getByMechanic(user?.id ?? '');
       setJobs(data);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    } catch { /* silent */ }
+    finally { setLoading(false); setRefreshing(false); }
   }, [user?.id]);
 
-  useFocusEffect(useCallback(() => {
-    setLoading(true);
-    load();
-  }, [load]));
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    load();
-  }, [load]);
+  useFocusEffect(useCallback(() => { setLoading(true); load(); }, [load]));
+  const onRefresh = useCallback(() => { setRefreshing(true); load(); }, [load]);
 
   const filtered = jobs.filter(j => {
     if (!matchFilter(j, filter)) return false;
@@ -88,23 +210,36 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
     );
   });
 
+  const counts = {
+    all:                jobs.length,
+    assigned:           jobs.filter(j => j.status === 'assigned' || j.status === 'open').length,
+    in_progress:        jobs.filter(j => j.status === 'in_progress').length,
+    awaiting_approval:  jobs.filter(j => j.status === 'awaiting_approval').length,
+    revision_requested: jobs.filter(j => j.status === 'revision_requested').length,
+    completed:          jobs.filter(j => j.status === 'completed').length,
+  };
+
   return (
     <View style={s.container}>
+
       {/* ── Search ── */}
-      <View style={s.searchBox}>
-        <Ionicons name="search-outline" size={16} color={COLORS.textMuted} />
-        <TextInput
-          style={s.searchInput}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search by plate, work type…"
-          placeholderTextColor={COLORS.textMuted}
-        />
-        {!!search && (
-          <TouchableOpacity onPress={() => setSearch('')}>
-            <Ionicons name="close-circle" size={16} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        )}
+      <View style={s.searchWrap}>
+        <View style={s.searchBox}>
+          <Ionicons name="search-outline" size={17} color={MUTED} />
+          <TextInput
+            style={s.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search plate, work type, brand…"
+            placeholderTextColor={MUTED}
+            returnKeyType="search"
+          />
+          {!!search && (
+            <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-circle" size={17} color={MUTED} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* ── Filter chips ── */}
@@ -113,18 +248,39 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={s.chips}
       >
-        {FILTERS.map(f => (
-          <TouchableOpacity
-            key={f.key}
-            style={[s.chip, filter === f.key && s.chipActive]}
-            onPress={() => setFilter(f.key)}
-          >
-            <Text style={[s.chipText, filter === f.key && s.chipTextActive]}>
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {FILTERS.map(f => {
+          const active = filter === f.key;
+          const count  = counts[f.key];
+          return (
+            <TouchableOpacity
+              key={f.key}
+              style={[s.chip, active && s.chipActive]}
+              onPress={() => setFilter(f.key)}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name={f.icon as any}
+                size={13}
+                color={active ? '#fff' : SUBTLE}
+              />
+              <Text style={[s.chipText, active && s.chipTextActive]}>{f.label}</Text>
+              {count > 0 && (
+                <View style={[s.chipBadge, active && s.chipBadgeActive]}>
+                  <Text style={[s.chipBadgeText, active && s.chipBadgeTextActive]}>{count}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
+
+      {/* ── Results count ── */}
+      <View style={s.resultsRow}>
+        <Text style={s.resultsText}>
+          {filtered.length} {filtered.length === 1 ? 'job' : 'jobs'}
+          {search ? ` for "${search}"` : ''}
+        </Text>
+      </View>
 
       {/* ── List ── */}
       <FlatList
@@ -135,8 +291,8 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
           <RefreshControl
             refreshing={refreshing || loading}
             onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
+            tintColor={PRIMARY}
+            colors={[PRIMARY]}
           />
         }
         ListEmptyComponent={
@@ -146,56 +302,13 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
             icon="construct-outline"
           />
         }
-        renderItem={({ item: j }) => {
-          const cfg        = STATUS_CFG[j.status] ?? STATUS_CFG.open;
-          const isRevision = j.status === 'revision_requested';
-          const isPending  = j.status === 'awaiting_approval';
-
-          return (
-            <TouchableOpacity
-              style={[s.card, { borderLeftColor: cfg.color }]}
-              onPress={() => navigation.navigate('HanaJobCardDetail', { id: j._id })}
-              activeOpacity={0.8}
-            >
-              <View style={s.cardTop}>
-                <View style={s.cardLeft}>
-                  <Text style={s.plate}>{j.registrationNumber ?? '—'}</Text>
-                  <Text style={s.vehicle}>
-                    {[j.brand, j.model].filter(Boolean).join(' ') || '—'}
-                  </Text>
-                </View>
-                <View style={[s.pill, { backgroundColor: cfg.bg }]}>
-                  <Text style={[s.pillText, { color: cfg.color }]}>{cfg.label}</Text>
-                </View>
-              </View>
-
-              <Text style={s.workType}>{j.workType ?? '—'}</Text>
-
-              {isRevision && (
-                <View style={s.warningRow}>
-                  <Ionicons name="alert-circle-outline" size={12} color={COLORS.danger} />
-                  <Text style={s.warningText}>Revision needed — update estimate and resubmit</Text>
-                </View>
-              )}
-              {isPending && (
-                <View style={s.pendingRow}>
-                  <Ionicons name="time-outline" size={12} color={COLORS.warning} />
-                  <Text style={s.pendingText}>Submitted — waiting for owner review</Text>
-                </View>
-              )}
-
-              <View style={s.cardFooter}>
-                <Text style={s.idText}>#{j._id.slice(-8).toUpperCase()}</Text>
-                {j.createdAt && (
-                  <Text style={s.dateText}>
-                    {new Date(j.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                  </Text>
-                )}
-                <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
-              </View>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={({ item: j }) => (
+          <JobCard
+            key={j._id}
+            job={j}
+            onPress={() => navigation.navigate('HanaJobCardDetail', { id: j._id })}
+          />
+        )}
       />
     </View>
   );
@@ -204,35 +317,28 @@ export const MechanicJobsScreen: React.FC<{ navigation: any }> = ({ navigation }
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, backgroundColor: BG },
 
-  searchBox:   { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, margin: SPACING.md, marginBottom: 0, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.sm, paddingVertical: 10, ...SHADOW.sm },
-  searchInput: { flex: 1, fontSize: FONT.sizes.sm, color: COLORS.text },
+  // Search
+  searchWrap: { paddingHorizontal: SPACING.md, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
+  searchBox:  { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: SURFACE, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, ...SHADOW.sm },
+  searchInput:{ flex: 1, fontSize: 14, color: TEXT, padding: 0 },
 
-  chips:         { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, gap: SPACING.xs },
-  chip:          { paddingHorizontal: SPACING.md, height: 32, justifyContent: 'center', borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border },
-  chipActive:    { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText:      { fontSize: FONT.sizes.xs, fontWeight: '600', color: COLORS.textSecondary },
-  chipTextActive:{ color: '#fff' },
+  // Chips
+  chips:          { paddingHorizontal: SPACING.md, paddingBottom: SPACING.sm, gap: 8 },
+  chip:           { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: '#E2E8F0' },
+  chipActive:     { backgroundColor: DARK, borderColor: DARK },
+  chipText:       { fontSize: 12, fontWeight: '700', color: SUBTLE },
+  chipTextActive: { color: '#fff' },
+  chipBadge:      { backgroundColor: '#F1F5F9', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },
+  chipBadgeActive:{ backgroundColor: 'rgba(255,255,255,0.2)' },
+  chipBadgeText:  { fontSize: 10, fontWeight: '800', color: SUBTLE },
+  chipBadgeTextActive: { color: '#fff' },
 
-  list: { padding: SPACING.md, paddingBottom: 100 },
-  card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOW.sm, borderLeftWidth: 3 },
+  // Results
+  resultsRow:  { paddingHorizontal: SPACING.md, paddingBottom: 6 },
+  resultsText: { fontSize: 12, color: MUTED, fontWeight: '600' },
 
-  cardTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
-  cardLeft: { flex: 1, marginRight: SPACING.sm },
-  plate:    { fontSize: FONT.sizes.md, fontWeight: '700', color: COLORS.text },
-  vehicle:  { fontSize: FONT.sizes.xs, color: COLORS.textSecondary, marginTop: 2 },
-  pill:     { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
-  pillText: { fontSize: FONT.sizes.xs, fontWeight: '700' },
-
-  workType: { fontSize: FONT.sizes.sm, color: COLORS.textSecondary, marginBottom: 4 },
-
-  warningRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.dangerLight,  borderRadius: RADIUS.sm, padding: 5, marginBottom: 4 },
-  warningText: { flex: 1, fontSize: FONT.sizes.xs, color: COLORS.danger,  fontWeight: '600' },
-  pendingRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.warningLight, borderRadius: RADIUS.sm, padding: 5, marginBottom: 4 },
-  pendingText: { flex: 1, fontSize: FONT.sizes.xs, color: COLORS.warning, fontWeight: '600' },
-
-  cardFooter: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingTop: 6, borderTopWidth: 1, borderTopColor: COLORS.border, marginTop: 2 },
-  idText:     { flex: 1, fontSize: FONT.sizes.xs, color: COLORS.textMuted, fontWeight: '600' },
-  dateText:   { fontSize: FONT.sizes.xs, color: COLORS.textMuted },
+  // List
+  list: { paddingHorizontal: SPACING.md, paddingBottom: 100 },
 });

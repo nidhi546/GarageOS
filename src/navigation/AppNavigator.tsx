@@ -246,7 +246,14 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
         <Stack.Screen
           name="JobWork"
           component={JobWorkScreen}
-          options={{ title: "Job Work" }}
+          options={{
+            title: 'Job Work',
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTitleStyle: { color: '#fff', fontWeight: '800' } as any,
+            headerTintColor: '#4F46E5',
+            headerShadowVisible: false,
+            headerBackTitleVisible: false,
+          }}
         />
         <Stack.Screen
           name="CustomerDetail"

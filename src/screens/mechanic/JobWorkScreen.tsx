@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, TextInput, Alert,
@@ -11,8 +11,20 @@ import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { PhoneMasked } from '../../components/common/PhoneMasked';
 import { canTransition } from '../../constants/jobCardLifecycle';
-import { COLORS, SPACING, FONT, RADIUS, SHADOW } from '../../config/theme';
+import { SPACING, SHADOW } from '../../config/theme';
 import type { JobCardStatus } from '../../types';
+
+// ─── Theme ────────────────────────────────────────────────────────────────────
+
+const PRIMARY  = '#4F46E5';
+const PRIMARY_D = '#3730A3';
+const DARK     = '#0F172A';
+const BG       = '#F1F5F9';
+const SURFACE  = '#FFFFFF';
+const TEXT     = '#0F172A';
+const SUBTLE   = '#64748B';
+const MUTED    = '#94A3B8';
+const BORDER   = '#E2E8F0';
 
 // ─── Status action config ─────────────────────────────────────────────────────
 
@@ -20,28 +32,79 @@ interface StatusAction {
   to: JobCardStatus;
   label: string;
   color: string;
+  bg: string;
   icon: string;
   requiresPostTrial?: boolean;
 }
 
 const STATUS_ACTIONS: StatusAction[] = [
-  { to: 'in_progress',    label: 'Start Work',          color: COLORS.primary,  icon: 'play-circle-outline' },
-  { to: 'waiting_parts',  label: 'Waiting for Parts',   color: COLORS.warning,  icon: 'time-outline' },
-  { to: 'in_progress',    label: 'Resume Work',          color: COLORS.info,     icon: 'refresh-circle-outline' },
-  { to: 'work_completed', label: 'Mark Work Complete',   color: COLORS.success,  icon: 'checkmark-circle-outline', requiresPostTrial: true },
+  { to: 'in_progress',    label: 'Start Work',        color: PRIMARY,   bg: '#EEF2FF', icon: 'play-circle-outline',       },
+  { to: 'waiting_parts',  label: 'Waiting for Parts', color: '#D97706', bg: '#FFFBEB', icon: 'time-outline',               },
+  { to: 'in_progress',    label: 'Resume Work',        color: '#3B82F6', bg: '#EFF6FF', icon: 'refresh-circle-outline',    },
+  { to: 'work_completed', label: 'Mark Work Complete', color: '#059669', bg: '#ECFDF5', icon: 'checkmark-circle-outline',  requiresPostTrial: true },
 ];
+
+// ─── Info Row ─────────────────────────────────────────────────────────────────
+
+const InfoRow: React.FC<{ icon: string; label: string; value: string }> = ({ icon, label, value }) => (
+  <View style={ir.row}>
+    <View style={ir.iconBox}>
+      <Ionicons name={icon as any} size={16} color={PRIMARY} />
+    </View>
+    <View style={ir.texts}>
+      <Text style={ir.label}>{label}</Text>
+      <Text style={ir.value}>{value || '—'}</Text>
+    </View>
+  </View>
+);
+const ir = StyleSheet.create({
+  row:    { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  iconBox:{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
+  texts:  { flex: 1 },
+  label:  { fontSize: 11, color: MUTED, fontWeight: '600', marginBottom: 1 },
+  value:  { fontSize: 14, color: TEXT, fontWeight: '700' },
+});
+
+// ─── Section Card ─────────────────────────────────────────────────────────────
+
+const SectionCard: React.FC<{ title: string; icon: string; children: React.ReactNode }> = ({ title, icon, children }) => (
+  <View style={sec.card}>
+    <View style={sec.header}>
+      <View style={sec.iconBox}>
+        <Ionicons name={icon as any} size={16} color={PRIMARY} />
+      </View>
+      <Text style={sec.title}>{title}</Text>
+    </View>
+    {children}
+  </View>
+);
+const sec = StyleSheet.create({
+  card:   { backgroundColor: SURFACE, borderRadius: 20, padding: 16, marginBottom: 12, ...SHADOW.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  iconBox:{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E0E7FF' },
+  title:  { fontSize: 14, fontWeight: '800', color: DARK },
+});
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
   const { jobCardId } = route.params;
   const { selected, fetchById, updateStatus, update, isLoading } = useJobCardStore();
-  const [notes, setNotes]       = useState('');
+  const [notes,    setNotes]    = useState('');
   const [updating, setUpdating] = useState(false);
+
+  // ── Dark mechanic header ──
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle:      { backgroundColor: DARK },
+      headerTitleStyle: { color: '#fff', fontWeight: '800', fontSize: 16 },
+      headerTintColor:  PRIMARY,
+      title: 'Job Work',
+    });
+  }, [navigation]);
 
   useEffect(() => { fetchById(jobCardId); }, [jobCardId]);
 
-  // Re-fetch on focus so returning from post-trial reflects new status
   useFocusEffect(
     useCallback(() => { fetchById(jobCardId); }, [jobCardId]),
   );
@@ -59,13 +122,12 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
   const customerName   = selected.vehicle?.customer?.name ?? '—';
   const customerMobile = selected.vehicle?.customer?.mobile ?? '';
 
-  // Build available transitions from the current live status
   const availableActions = STATUS_ACTIONS.filter(a => canTransition(selected.status, a.to));
 
   const handleStatusChange = (action: StatusAction) => {
     if (action.requiresPostTrial && action.to === 'work_completed') {
       Alert.alert(
-        'Work Complete',
+        'Mark Work Complete',
         'Before marking complete, submit the Post-Trial (QC) checklist.',
         [
           { text: 'Cancel', style: 'cancel' },
@@ -97,6 +159,7 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Confirm',
+        style: 'default',
         onPress: async () => {
           setUpdating(true);
           try {
@@ -125,115 +188,106 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
 
   return (
     <View style={s.container}>
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
 
-        {/* ── Job Header ── */}
-        <View style={s.headerCard}>
-          <View style={s.headerTop}>
-            <View style={s.jobIcon}>
-              <Ionicons name="construct" size={22} color={COLORS.primary} />
+        {/* ── Job header card ── */}
+        <View style={s.jobCard}>
+          <View style={s.jobCardTop}>
+            <View style={s.jobIconBox}>
+              <Ionicons name="construct" size={22} color={PRIMARY} />
             </View>
-            <View style={s.headerInfo}>
+            <View style={s.jobCardInfo}>
               <Text style={s.jobNum}>{selected.job_number ?? selected.id}</Text>
-              <Text style={s.workType}>{selected.work_type?.toUpperCase() ?? 'SERVICE'}</Text>
+              <Text style={s.jobWorkType}>{selected.work_type?.toUpperCase() ?? 'SERVICE'}</Text>
             </View>
             <JobStatusBadge status={selected.status} large />
           </View>
         </View>
 
-        {/* ── Delivery lock banner ── */}
+        {/* ── Locked banner ── */}
         {isLocked && (
-          <View style={s.lockedBanner}>
-            <Ionicons name="lock-closed-outline" size={16} color={COLORS.success} />
-            <Text style={s.lockedText}>
+          <View style={[s.banner, s.bannerGreen]}>
+            <Ionicons name="lock-closed" size={16} color="#059669" />
+            <Text style={[s.bannerText, { color: '#065F46' }]}>
               {selected.status === 'delivered'
-                ? 'Vehicle delivered. Job is locked.'
+                ? 'Vehicle delivered — job is locked.'
                 : selected.status === 'paid'
-                  ? 'Payment complete. Awaiting delivery.'
+                  ? 'Payment complete — awaiting delivery.'
                   : 'Job cancelled.'}
             </Text>
           </View>
         )}
 
-        {/* ── QC stage banner ── */}
+        {/* ── QC banner ── */}
         {isQcStage && !isLocked && (
-          <View style={[s.qcBanner, selected.status === 'qc_failed' ? s.qcBannerFail : s.qcBannerPass]}>
+          <View style={[s.banner, selected.status === 'qc_failed' ? s.bannerRed : s.bannerAmber]}>
             <Ionicons
-              name={selected.status === 'qc_failed' ? 'warning-outline' : 'shield-checkmark-outline'}
+              name={selected.status === 'qc_failed' ? 'warning' : 'shield-checkmark'}
               size={16}
-              color={selected.status === 'qc_failed' ? COLORS.danger : COLORS.warning}
+              color={selected.status === 'qc_failed' ? '#DC2626' : '#D97706'}
             />
-            <Text style={[s.qcText, { color: selected.status === 'qc_failed' ? COLORS.danger : COLORS.warning }]}>
+            <Text style={[s.bannerText, { color: selected.status === 'qc_failed' ? '#991B1B' : '#92400E' }]}>
               {selected.status === 'work_completed' && 'Work complete — submit QC post-trial.'}
               {selected.status === 'qc_pending'     && 'QC in progress — post-trial being reviewed.'}
-              {selected.status === 'qc_failed'      && 'QC failed — rework required. Resume work to fix issues.'}
+              {selected.status === 'qc_failed'      && 'QC failed — rework required. Resume work.'}
               {selected.status === 'qc_passed'      && 'QC passed — ready for invoicing.'}
             </Text>
           </View>
         )}
 
         {/* ── Vehicle ── */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Vehicle</Text>
-          <View style={s.infoRow}>
-            <Ionicons name="car-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={s.infoText}>{vehicleName}</Text>
-          </View>
-          <View style={s.infoRow}>
-            <Ionicons name="barcode-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={s.infoText}>{plate}</Text>
-          </View>
-          <View style={s.infoRow}>
-            <Ionicons name="speedometer-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={s.infoText}>{selected.current_kms?.toLocaleString('en-IN') ?? '—'} km</Text>
-          </View>
-        </View>
+        <SectionCard title="Vehicle" icon="car-sport-outline">
+          <InfoRow icon="car-outline"         label="Vehicle"   value={vehicleName} />
+          <InfoRow icon="barcode-outline"     label="Plate No." value={plate} />
+          <InfoRow icon="speedometer-outline" label="Odometer"  value={selected.current_kms ? `${selected.current_kms.toLocaleString('en-IN')} km` : '—'} />
+        </SectionCard>
 
         {/* ── Customer ── */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Customer</Text>
-          <View style={s.infoRow}>
-            <Ionicons name="person-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={s.infoText}>{customerName}</Text>
-          </View>
+        <SectionCard title="Customer" icon="person-outline">
+          <InfoRow icon="person-circle-outline" label="Name"   value={customerName} />
           {customerMobile ? (
-            <View style={s.infoRow}>
-              <Ionicons name="call-outline" size={16} color={COLORS.textSecondary} />
-              <PhoneMasked phone={customerMobile} />
+            <View style={ir.row}>
+              <View style={ir.iconBox}>
+                <Ionicons name="call-outline" size={16} color={PRIMARY} />
+              </View>
+              <View style={ir.texts}>
+                <Text style={ir.label}>Mobile</Text>
+                <PhoneMasked phone={customerMobile} />
+              </View>
             </View>
           ) : null}
-        </View>
+        </SectionCard>
 
         {/* ── Description ── */}
-        {selected.description && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Work Description</Text>
+        {selected.description ? (
+          <SectionCard title="Work Description" icon="document-text-outline">
             <Text style={s.descText}>{selected.description}</Text>
-          </View>
-        )}
+          </SectionCard>
+        ) : null}
 
-        {/* ── Status Transitions ── */}
+        {/* ── Status transitions ── */}
         {!isLocked && availableActions.length > 0 && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Update Status</Text>
-            <View style={s.transitionRow}>
+          <SectionCard title="Update Status" icon="swap-horizontal-outline">
+            <View style={s.actionsGrid}>
               {availableActions.map(action => (
                 <TouchableOpacity
                   key={`${action.to}-${action.label}`}
-                  style={[s.transitionBtn, { borderColor: action.color, opacity: updating ? 0.6 : 1 }]}
+                  style={[s.actionBtn, { backgroundColor: action.bg, borderColor: action.color + '50', opacity: updating ? 0.6 : 1 }]}
                   onPress={() => handleStatusChange(action)}
                   disabled={updating}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name={action.icon as any} size={18} color={action.color} />
-                  <Text style={[s.transitionText, { color: action.color }]}>{action.label}</Text>
+                  <View style={[s.actionIconBox, { backgroundColor: action.color + '20' }]}>
+                    <Ionicons name={action.icon as any} size={20} color={action.color} />
+                  </View>
+                  <Text style={[s.actionText, { color: action.color }]}>{action.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
+          </SectionCard>
         )}
 
-        {/* ── Post-trial shortcut when work complete or qc failed ── */}
+        {/* ── Post-trial shortcut ── */}
         {(selected.status === 'work_completed' || selected.status === 'qc_failed') && (
           <TouchableOpacity
             style={s.postTrialBtn}
@@ -244,42 +298,49 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
             })}
             activeOpacity={0.85}
           >
-            <Ionicons name="clipboard-outline" size={20} color={COLORS.success} />
-            <Text style={s.postTrialBtnText}>
+            <View style={s.postTrialIcon}>
+              <Ionicons name="clipboard-outline" size={20} color="#059669" />
+            </View>
+            <Text style={s.postTrialText}>
               {selected.status === 'qc_failed' ? 'Re-Submit Post-Trial (QC)' : 'Submit Post-Trial (QC)'}
             </Text>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.success} />
+            <Ionicons name="arrow-forward" size={18} color="#059669" />
           </TouchableOpacity>
         )}
 
-        {/* ── Work Notes ── */}
+        {/* ── Work notes ── */}
         {!isLocked && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Work Notes</Text>
+          <SectionCard title="Work Notes" icon="pencil-outline">
             <TextInput
               style={s.notesInput}
               value={notes}
               onChangeText={setNotes}
-              placeholder="Add notes about work done, parts used, observations..."
-              placeholderTextColor={COLORS.textMuted}
+              placeholder="Add notes about work done, parts used, observations…"
+              placeholderTextColor={MUTED}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
             />
-            <Button title="Save Notes" onPress={handleSaveNotes} variant="secondary" size="sm" style={s.saveBtn} />
-          </View>
+            <TouchableOpacity
+              style={s.saveBtn}
+              onPress={handleSaveNotes}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="save-outline" size={16} color="#fff" />
+              <Text style={s.saveBtnText}>Save Notes</Text>
+            </TouchableOpacity>
+          </SectionCard>
         )}
 
-        {/* ── Inspections quick-view ── */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Inspections</Text>
+        {/* ── Inspections ── */}
+        <SectionCard title="Inspections" icon="shield-checkmark-outline">
           <View style={s.inspectionRow}>
             {(['pre', 'post'] as const).map(type => {
               const done = !!selected.inspections?.find(i => i.type === type);
               return (
                 <TouchableOpacity
                   key={type}
-                  style={[s.inspectionChip, done && s.inspectionChipDone]}
+                  style={[s.inspChip, done && s.inspChipDone]}
                   onPress={() => navigation.navigate('Inspection', {
                     jobCardId,
                     type,
@@ -287,19 +348,26 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
                   })}
                   activeOpacity={0.8}
                 >
-                  <Ionicons
-                    name={done ? 'checkmark-circle' : 'clipboard-outline'}
-                    size={16}
-                    color={done ? COLORS.success : COLORS.textSecondary}
-                  />
-                  <Text style={[s.inspectionChipText, done && { color: COLORS.success }]}>
-                    {type === 'pre' ? 'Pre-Trial' : 'Post-Trial'} {done ? '✓' : '—'}
-                  </Text>
+                  <View style={[s.inspChipIcon, done && { backgroundColor: '#ECFDF5' }]}>
+                    <Ionicons
+                      name={done ? 'checkmark-circle' : 'clipboard-outline'}
+                      size={18}
+                      color={done ? '#059669' : MUTED}
+                    />
+                  </View>
+                  <View>
+                    <Text style={[s.inspChipLabel, done && { color: '#059669' }]}>
+                      {type === 'pre' ? 'Pre-Trial' : 'Post-Trial'}
+                    </Text>
+                    <Text style={[s.inspChipStatus, done && { color: '#059669' }]}>
+                      {done ? 'Completed ✓' : 'Not done yet'}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </View>
-        </View>
+        </SectionCard>
 
       </ScrollView>
     </View>
@@ -309,42 +377,48 @@ export const JobWorkScreen: React.FC<{ route: any; navigation: any }> = ({ route
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container:          { flex: 1, backgroundColor: COLORS.background },
-  content:            { padding: SPACING.md, paddingBottom: 100 },
+  container: { flex: 1, backgroundColor: BG },
+  content:   { padding: SPACING.md, paddingBottom: 100 },
 
-  headerCard:         { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOW.sm },
-  headerTop:          { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  jobIcon:            { width: 44, height: 44, borderRadius: 10, backgroundColor: COLORS.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  headerInfo:         { flex: 1 },
-  jobNum:             { fontSize: FONT.sizes.md, fontWeight: '700', color: COLORS.text },
-  workType:           { fontSize: FONT.sizes.xs, color: COLORS.textMuted, marginTop: 2 },
+  // Job header card
+  jobCard:     { backgroundColor: DARK, borderRadius: 20, padding: 18, marginBottom: 12, ...SHADOW.sm },
+  jobCardTop:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  jobIconBox:  { width: 48, height: 48, borderRadius: 14, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
+  jobCardInfo: { flex: 1 },
+  jobNum:      { fontSize: 16, fontWeight: '800', color: '#fff' },
+  jobWorkType: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 3, fontWeight: '600', letterSpacing: 0.5 },
 
-  lockedBanner:       { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.successLight, borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.success },
-  lockedText:         { flex: 1, fontSize: FONT.sizes.sm, color: COLORS.success, fontWeight: '600' },
+  // Banners
+  banner:       { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1 },
+  bannerGreen:  { backgroundColor: '#ECFDF5', borderColor: '#6EE7B7' },
+  bannerRed:    { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  bannerAmber:  { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  bannerText:   { flex: 1, fontSize: 13, fontWeight: '600' },
 
-  qcBanner:           { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.sm, borderWidth: 1 },
-  qcBannerFail:       { backgroundColor: COLORS.dangerLight, borderColor: COLORS.danger },
-  qcBannerPass:       { backgroundColor: COLORS.warningLight, borderColor: COLORS.warning },
-  qcText:             { flex: 1, fontSize: FONT.sizes.sm, fontWeight: '600' },
+  // Description
+  descText: { fontSize: 14, color: SUBTLE, lineHeight: 22 },
 
-  section:            { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOW.sm },
-  sectionTitle:       { fontSize: FONT.sizes.sm, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.sm },
-  infoRow:            { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: 6 },
-  infoText:           { fontSize: FONT.sizes.sm, color: COLORS.textSecondary },
-  descText:           { fontSize: FONT.sizes.sm, color: COLORS.textSecondary, lineHeight: 22 },
+  // Status action buttons
+  actionsGrid:  { gap: 10 },
+  actionBtn:    { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1.5, paddingVertical: 14, paddingHorizontal: 16 },
+  actionIconBox:{ width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  actionText:   { fontSize: 14, fontWeight: '800', flex: 1 },
 
-  transitionRow:      { gap: SPACING.sm },
-  transitionBtn:      { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingVertical: 12, paddingHorizontal: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1.5 },
-  transitionText:     { fontSize: FONT.sizes.sm, fontWeight: '700', flex: 1 },
+  // Post-trial
+  postTrialBtn:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ECFDF5', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1.5, borderColor: '#6EE7B7', ...SHADOW.sm },
+  postTrialIcon: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#D1FAE5', alignItems: 'center', justifyContent: 'center' },
+  postTrialText: { flex: 1, fontSize: 14, fontWeight: '800', color: '#059669' },
 
-  postTrialBtn:       { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.successLight, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, borderWidth: 1.5, borderColor: COLORS.success },
-  postTrialBtnText:   { flex: 1, fontSize: FONT.sizes.md, fontWeight: '700', color: COLORS.success },
+  // Notes
+  notesInput: { backgroundColor: BG, borderRadius: 12, padding: 14, fontSize: 14, color: TEXT, minHeight: 110, borderWidth: 1.5, borderColor: BORDER, marginBottom: 12, lineHeight: 22 },
+  saveBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: PRIMARY, borderRadius: 12, paddingVertical: 12, alignSelf: 'flex-end', paddingHorizontal: 20 },
+  saveBtnText:{ fontSize: 14, fontWeight: '800', color: '#fff' },
 
-  notesInput:         { backgroundColor: COLORS.background, borderRadius: RADIUS.sm, padding: SPACING.sm, fontSize: FONT.sizes.sm, color: COLORS.text, minHeight: 100, borderWidth: 1, borderColor: COLORS.border },
-  saveBtn:            { marginTop: SPACING.sm, alignSelf: 'flex-end' },
-
-  inspectionRow:      { flexDirection: 'row', gap: SPACING.sm },
-  inspectionChip:     { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.background, borderRadius: RADIUS.md, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border },
-  inspectionChipDone: { backgroundColor: COLORS.successLight, borderColor: COLORS.success },
-  inspectionChipText: { fontSize: FONT.sizes.xs, fontWeight: '600', color: COLORS.textSecondary, flex: 1 },
+  // Inspections
+  inspectionRow: { flexDirection: 'row', gap: 10 },
+  inspChip:      { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: BG, borderRadius: 14, padding: 12, borderWidth: 1.5, borderColor: BORDER },
+  inspChipDone:  { backgroundColor: '#F0FDF4', borderColor: '#6EE7B7' },
+  inspChipIcon:  { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  inspChipLabel: { fontSize: 12, fontWeight: '800', color: SUBTLE },
+  inspChipStatus:{ fontSize: 11, color: MUTED, fontWeight: '500', marginTop: 1 },
 });
