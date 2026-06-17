@@ -422,10 +422,10 @@ export const HanaJobCardDetailScreen: React.FC<{ route: any; navigation: any }> 
             invoice.paymentStatus === 'unpaid'  && { color: COLORS.danger },
           ]}>
             {invoice.paymentStatus === 'paid'
-              ? `Invoice ${invoice.invoiceNumber} · Paid in Full`
+              ? `Invoice ${invoice.invoiceNumber} · Settled in Full`
               : invoice.paymentStatus === 'partial'
                 ? `Invoice ${invoice.invoiceNumber} · Balance ₹${invoice.balanceDue.toLocaleString('en-IN')}`
-                : `Invoice ${invoice.invoiceNumber} · Payment Pending ₹${invoice.balanceDue.toLocaleString('en-IN')}`
+                : `Invoice ${invoice.invoiceNumber} · Due ₹${invoice.balanceDue.toLocaleString('en-IN')}`
             }
           </Text>
         </View>
@@ -463,7 +463,7 @@ export const HanaJobCardDetailScreen: React.FC<{ route: any; navigation: any }> 
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={s.actionCard}
               onPress={() => navigation.navigate('Payment', { jobCardId: id })}
               activeOpacity={0.8}
@@ -477,7 +477,7 @@ export const HanaJobCardDetailScreen: React.FC<{ route: any; navigation: any }> 
                   <Text style={[s.paidBadgeText, { color: COLORS.warning }]}>PARTIAL</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </>
         )}
       </View>

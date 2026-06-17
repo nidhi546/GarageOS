@@ -117,8 +117,8 @@ export const PaymentScreen: React.FC<{ route: any; navigation: any }> = ({
 
     const modeLabel = mode.replace("_", " ").toUpperCase();
     Alert.alert(
-      "Confirm Payment",
-      `Record ${formatCurrency(enteredAmount)} via ${modeLabel}?`,
+      "Confirm Collection",
+      `Collect ${formatCurrency(enteredAmount)} via ${modeLabel}?`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Confirm", onPress: processPayment },
@@ -167,20 +167,20 @@ export const PaymentScreen: React.FC<{ route: any; navigation: any }> = ({
 
       if (newStatus === "paid") {
         Alert.alert(
-          "Payment Complete ✓",
-          `Invoice ${invoice.invoiceNumber} has been paid in full.`,
+          "Collection Complete ✓",
+          `Invoice ${invoice.invoiceNumber} has been settled in full.`,
           [{ text: "Done", onPress: () => navigation.navigate("Dashboard") }],
         );
       } else {
         Alert.alert(
-          "Payment Recorded ✓",
-          `${formatCurrency(enteredAmount)} received.\n\nRemaining balance: ${formatCurrency(Math.max(0, newBalance))}`,
+          "Collection Recorded ✓",
+          `${formatCurrency(enteredAmount)} collected.\n\nRemaining balance: ${formatCurrency(Math.max(0, newBalance))}`,
           [{ text: "OK", onPress: () => navigation.goBack() }],
         );
       }
     } catch (e: any) {
       Alert.alert(
-        "Payment Failed",
+        "Collection Failed",
         e.message ?? "An error occurred. Please try again.",
       );
     } finally {
@@ -302,7 +302,7 @@ export const PaymentScreen: React.FC<{ route: any; navigation: any }> = ({
 
         {/* ── Payment Amount ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Payment Amount</Text>
+          <Text style={s.sectionTitle}>Amount to Collect</Text>
           <View
             style={[
               s.amountBox,
@@ -349,7 +349,7 @@ export const PaymentScreen: React.FC<{ route: any; navigation: any }> = ({
 
         {/* ── Payment Mode ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Payment Mode</Text>
+          <Text style={s.sectionTitle}>Collection Method</Text>
           <View style={s.modeGrid}>
             {MODES.map((m) => {
               const active = mode === m.key;
@@ -409,7 +409,7 @@ export const PaymentScreen: React.FC<{ route: any; navigation: any }> = ({
               color={COLORS.success}
             />
             <Text style={s.lockNoticeText}>
-              Full payment — invoice will be marked as paid
+              Full amount — invoice will be marked as settled
             </Text>
           </View>
         )}

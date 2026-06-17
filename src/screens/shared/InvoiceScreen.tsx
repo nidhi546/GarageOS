@@ -252,13 +252,13 @@ export const InvoiceScreen: React.FC<{ route: any; navigation: any }> = ({ route
           <Ionicons name="download-outline" size={20} color={COLORS.primary} />
           <Text style={[s.shareBtnText, { color: COLORS.primary }]}>Download PDF</Text>
         </TouchableOpacity>
-        {!isPaid && (
+        {/* {!isPaid && (
           <Button
-            title="Record Payment"
+            title="Record Collection"
             onPress={() => navigation.navigate('Payment', { jobCardId, invoiceId: invoice._id })}
             style={s.payBtn}
           />
-        )}
+        )} */}
       </View>
     </View>
   );

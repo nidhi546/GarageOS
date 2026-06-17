@@ -279,7 +279,7 @@ export const OwnerDashboard: React.FC<{ navigation: any }> = ({ navigation }) =>
               <View style={s.revenueCardIconBox}>
                 <Ionicons name="trending-up-outline" size={15} color={COLORS.primary} />
               </View>
-              <Text style={s.revenueCardHeading}>Revenue Overview</Text>
+              <Text style={s.revenueCardHeading}>Earnings Overview</Text>
               <Ionicons name="chevron-forward" size={15} color={COLORS.textMuted} />
             </View>
             <View style={s.revenueCardBody}>
@@ -332,7 +332,7 @@ export const OwnerDashboard: React.FC<{ navigation: any }> = ({ navigation }) =>
               },
               {
                 icon:    'wallet-outline' as const,
-                label:   'Pending Payments',
+                label:   'Outstanding Dues',
                 value:   pendingPayments > 0 ? formatCurrency(pendingPayments) : '—',
                 color:   pendingPayments > 0 ? COLORS.danger : COLORS.textMuted,
                 bg:      pendingPayments > 0 ? COLORS.dangerLight : '#F3F4F6',

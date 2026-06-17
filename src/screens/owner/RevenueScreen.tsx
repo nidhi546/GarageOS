@@ -142,11 +142,11 @@ export const RevenueScreen: React.FC = () => {
 
       {/* ── Revenue Hero Card ── */}
       <View style={s.revenueCard}>
-        <Text style={s.revenueLabel}>Total Revenue</Text>
+        <Text style={s.revenueLabel}>Total Earnings</Text>
         <Text style={s.revenueValue}>{formatINR(totalRevenue)}</Text>
-        <Text style={s.revenueNote}>Completed jobs · paid invoices only</Text>
+        <Text style={s.revenueNote}>Completed jobs · settled invoices only</Text>
         {totalRevenue === 0 ? (
-          <Text style={s.noDataNote}>No payments received yet</Text>
+          <Text style={s.noDataNote}>No collections received yet</Text>
         ) : (
           <View style={s.revenueSub}>
             <Ionicons
@@ -240,10 +240,10 @@ export const RevenueScreen: React.FC = () => {
       </View>
 
       {/* ── Payment Breakdown ── */}
-      <Text style={s.sectionTitle}>Payment Breakdown</Text>
+      <Text style={s.sectionTitle}>Collection Breakdown</Text>
 
       {breakdown.length === 0 ? (
-        <EmptyCard icon="bar-chart-outline" text="No payments in this period" />
+        <EmptyCard icon="bar-chart-outline" text="No collections in this period" />
       ) : (
         breakdown.map(({ mode, amount, percent }) => (
           <View key={mode} style={s.modeCard}>
@@ -306,7 +306,7 @@ export const RevenueScreen: React.FC = () => {
       {/* ── Mechanic Revenue ── */}
       {mechanicRevenue.length > 0 && (
         <>
-          <Text style={s.sectionTitle}>Mechanic-wise Revenue</Text>
+          <Text style={s.sectionTitle}>Mechanic-wise Earnings</Text>
           {mechanicRevenue.map(item => (
             <MechanicRow
               key={item.mechanicId}
@@ -320,7 +320,7 @@ export const RevenueScreen: React.FC = () => {
       {/* ── Service Revenue ── */}
       {serviceRevenue.length > 0 && (
         <>
-          <Text style={s.sectionTitle}>Top Services by Revenue</Text>
+          <Text style={s.sectionTitle}>Top Services by Earnings</Text>
           {serviceRevenue.map(item => (
             <ServiceRow
               key={item.serviceName}

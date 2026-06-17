@@ -408,12 +408,12 @@ export const JobCardDetailScreen: React.FC<{ route: any; navigation: any }> = ({
                 </View>
                 <Text style={s.actionLabel}>Invoice</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Payment', { jobCardId: id })}>
+              {/* <TouchableOpacity style={s.actionCard} onPress={() => navigation.navigate('Payment', { jobCardId: id })}>
                 <View style={[s.actionIcon, { backgroundColor: COLORS.warningLight }]}>
                   <Ionicons name="cash-outline" size={22} color={COLORS.warning} />
                 </View>
                 <Text style={s.actionLabel}>Payment</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </>
           )}
         </View>

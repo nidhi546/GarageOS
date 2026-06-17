@@ -204,12 +204,12 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
         <Stack.Screen
           name="Revenue"
           component={RevenueScreen}
-          options={{ ...withDrawer, title: "Revenue" }}
+          options={{ ...withDrawer, title: "Earnings" }}
         />
         <Stack.Screen
           name="ManageServices"
           component={ManageServicesScreen}
-          options={{ ...withDrawer, title: "Service Pricing" }}
+          options={{ ...withDrawer, title: "Manage Services" }}
         />
         <Stack.Screen
           name="Approvals"
@@ -288,7 +288,7 @@ const AuthenticatedApp: React.FC<{ role: UserRole; navRef: any }> = ({
         <Stack.Screen
           name="Payment"
           component={PaymentScreen}
-          options={{ title: "Record Payment" }}
+          options={{ title: "Record Collection" }}
         />
         <Stack.Screen
           name="Inspection"
