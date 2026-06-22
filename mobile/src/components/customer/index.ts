@@ -1,1 +1,0 @@
-export { CustomerListItem } from './CustomerListItem';
