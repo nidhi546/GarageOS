@@ -11,6 +11,11 @@ node_modules/
 # Build outputs
 dist/
 build/
+android/build/
+android/.gradle/
+ios/build/
+ios/DerivedData/
+ios/Pods/
 
 # macOS
 .DS_Store
@@ -28,5 +33,7 @@ CRED_file
 *firebase-adminsdk*.json
 *.p12
 *.pem
+GoogleService-Info.plist
+google-services.json
 .env
 .env.*
