@@ -1,9 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.CAMERA"/>
-  <!-- Android 12 and below: READ_MEDIA_IMAGES not needed on API 33+ because expo-image-picker uses the Android Photo Picker -->
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
+
+  <!-- Android ≤ 12 (API 32): broad storage read. tools:node="replace" ensures the
+       library's version (which lacks maxSdkVersion) is overridden by this one. -->
+  <uses-permission
+      android:name="android.permission.READ_EXTERNAL_STORAGE"
+      android:maxSdkVersion="32"
+      tools:node="replace"/>
+
+  <!-- Android 13+ (API 33+): granular image-only permission instead of broad storage. -->
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+  <!-- Android 14+ (API 34+): lets users grant partial photo library access. -->
+  <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"/>
+
+  <!-- Write storage only needed up to Android 9 (API 29). -->
+  <uses-permission
+      android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+      android:maxSdkVersion="29"
+      tools:node="replace"/>
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
   <queries>

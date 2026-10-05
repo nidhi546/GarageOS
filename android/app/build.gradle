@@ -31,10 +31,9 @@ react {
     // codegenDir = file("../../node_modules/@react-native/codegen")
 
     /* Variants */
-    //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
-    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    //   Empty list means debug builds bundle JS inline (no Metro server required).
+    //   Set to ["debug"] to re-enable Metro fast-refresh during development.
+    debuggableVariants = []
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -94,8 +93,8 @@ android {
         applicationId 'com.hanagarageos.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.0.6"
+        versionCode 8
+        versionName "1.0.8"
     }
     signingConfigs {
         debug {

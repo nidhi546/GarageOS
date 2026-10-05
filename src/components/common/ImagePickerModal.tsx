@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, Modal, TouchableOpacity,
-  StyleSheet, Pressable, Image, ScrollView, Linking,
+  StyleSheet, Pressable, Image, ScrollView, Linking, Platform,
 } from 'react-native';
 import { Ionicons }       from '@expo/vector-icons';
 import * as ImagePicker   from 'expo-image-picker';
@@ -35,18 +35,7 @@ interface Props {
 
 // ─── Permission helpers ───────────────────────────────────────────────────────
 
-async function ensureGalleryPermission(): Promise<boolean> {
-  const { status, canAskAgain } =
-    await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status === 'granted') return true;
-  if (!canAskAgain) {
-    showToast('Gallery access is permanently denied. Enable it in Settings.', 'error');
-    Linking.openSettings();
-  } else {
-    showToast('Gallery permission is required to pick photos.', 'error');
-  }
-  return false;
-}
+
 
 async function ensureCameraPermission(): Promise<boolean> {
   const { status, canAskAgain } =
@@ -110,30 +99,30 @@ export const ImagePickerModal: React.FC<Props> = ({
 
   // ── Gallery picker ────────────────────────────────────────────────────────
 
-  const pickFromGallery = async () => {
-    try {
-      const ok = await ensureGalleryPermission();
-      if (!ok) return;
+ const pickFromGallery = async () => {
+  try {
+    // ❌ Remove this - no permission needed with Photo Picker
+    
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:              ['images'] as ImagePicker.MediaType[],
-        allowsMultipleSelection: true,
-        quality:                 0.85,
-        selectionLimit:          remaining,
-        exif:                    false,
-      });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes:              ['images'] as ImagePicker.MediaType[],
+      allowsMultipleSelection: true,
+      quality:                 0.85,
+      selectionLimit:          remaining,
+      exif:                    false,
+    });
 
-      if (result.canceled || !result.assets?.length) return;
+    if (result.canceled || !result.assets?.length) return;
 
-      await handlePicked(result.assets.map(a => ({
-        uri:      a.uri,
-        fileName: a.fileName ?? undefined,
-        type:     a.mimeType ?? 'image/jpeg',
-      })));
-    } catch {
-      showToast('Failed to open gallery. Please try again.', 'error');
-    }
-  };
+    await handlePicked(result.assets.map(a => ({
+      uri:      a.uri,
+      fileName: a.fileName ?? undefined,
+      type:     a.mimeType ?? 'image/jpeg',
+    })));
+  } catch {
+    showToast('Failed to open gallery. Please try again.', 'error');
+  }
+};
 
   // ── Camera picker ─────────────────────────────────────────────────────────
 

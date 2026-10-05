@@ -25,13 +25,15 @@ async function ensureCameraPermission(): Promise<boolean> {
   return false;
 }
 
-async function ensureGalleryPermission(): Promise<boolean> {
+async function ensureMediaLibraryPermission(): Promise<boolean> {
+  // Android 13+ uses the system photo picker — no runtime permission needed.
+  // Android ≤ 12 needs READ_EXTERNAL_STORAGE which requestMediaLibraryPermissionsAsync handles.
   const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status === 'granted') return true;
   if (!canAskAgain) {
     Alert.alert(
       'Gallery Permission',
-      'Gallery access is permanently denied. Please enable it in Settings.',
+      'Photo library access is permanently denied. Please enable it in Settings.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Open Settings', onPress: () => Linking.openSettings() },
@@ -40,6 +42,8 @@ async function ensureGalleryPermission(): Promise<boolean> {
   }
   return false;
 }
+
+
 
 // ─── Normalise asset URI for Android ─────────────────────────────────────────
 // On Android, expo-image-picker returns content:// URIs which Axios can handle.
@@ -81,7 +85,7 @@ export async function pickFromCamera(allowsEditing = false): Promise<PickedImage
 
 /** Pick one or more images from the gallery. */
 export async function pickFromGallery(maxImages = 1): Promise<PickedImage[]> {
-  const ok = await ensureGalleryPermission();
+  const ok = await ensureMediaLibraryPermission();
   if (!ok) return [];
 
   try {
